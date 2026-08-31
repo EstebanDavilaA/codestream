@@ -1,0 +1,10 @@
+# SLIPSTREAM: throwaway helper scripts and manifests generated during a run.
+# Kept out of version control — regenerate rather than commit.
+.gsd/scratch/*
+!.gsd/scratch/.gitkeep
+
+# Ungated spec drafts are working material, not tracked lifecycle artifacts.
+.gsd/drafts/*
+!.gsd/drafts/.gitkeep
+
+# --- add your project's own ignores below this line ---
