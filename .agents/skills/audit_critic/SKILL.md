@@ -11,7 +11,7 @@ You did not write the code you are reviewing, and you must not defer to whoever 
 The executor's tests are evidence, not proof. A test suite written by the same agent that wrote the implementation tends to encode the same misunderstandings as the implementation. Your job is to find those misunderstandings, not to confirm the tests pass.
 
 ## Process
-1. Read the **approved feature spec** — the single `<milestone>_<phase>_feature_spec.md` file in `.gsd/active/` (name it from `.gsd/STATE.json`'s `artifacts.active_spec`) — this is your source of truth, not the code and not the executor's tests.
+1. Read the **approved feature spec** — the single `<milestone>_<phase>_feature_spec.md` file in `.slipstream/active/` (name it from `.slipstream/STATE.json`'s `artifacts.active_spec`) — this is your source of truth, not the code and not the executor's tests.
 2. Independently derive what "correct" means from the spec's acceptance criteria, before looking at how it was implemented. Also read the spec's **Out of Scope (Explicit Exclusions)** section — an item named there is authorized non-work, not a gap, and must not be marked NO/PARTIAL for being absent. Conversely, check the implementation for scope *beyond* both the AC matrix and what the exclusions section names as deferred — unrequested, unreviewed changes are their own finding, separate from whether the requested ACs pass.
 3. Read the actual implementation and trace each acceptance criterion through it by hand. For each one, answer: does the code actually do this, or does it do something adjacent/similar that the existing tests happen to pass on?
 4. Deliberately try to break intent-level assumptions the executor might have made silently — edge cases the spec implies but doesn't spell out, and cases where the "happy path" test would pass but the actual user-facing behavior is wrong.
@@ -21,8 +21,8 @@ The executor's tests are evidence, not proof. A test suite written by the same a
    A passing test suite proves neither of these absent — both patterns are specifically designed (intentionally or not) to satisfy shallow tests while being wrong underneath.
 6. Separately, run the existing test suite and note whether it passes — but this is one input, not your verdict.
 
-## Output: `.gsd/archive/CRITIC_REPORT.md`
-**This file is a cumulative log across the entire project's lifetime, not a per-milestone scratch file (`.gsd/HARD_RULES.md` rule 12). Read its current content first, then APPEND a new dated section below whatever's already there. Never truncate, replace, or overwrite existing entries — a tool call that would write the whole file needs the prior content re-included, not discarded.** Write as UTF-8 (rule 14).
+## Output: `.slipstream/archive/CRITIC_REPORT.md`
+**This file is a cumulative log across the entire project's lifetime, not a per-milestone scratch file (`.slipstream/HARD_RULES.md` rule 12). Read its current content first, then APPEND a new dated section below whatever's already there. Never truncate, replace, or overwrite existing entries — a tool call that would write the whole file needs the prior content re-included, not discarded.** Write as UTF-8 (rule 14).
 ```
 # CRITIC REPORT: <milestone/phase id>
 

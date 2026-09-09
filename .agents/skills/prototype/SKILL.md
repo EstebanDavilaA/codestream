@@ -23,7 +23,7 @@ description: Use when the user has a raw, unstructured idea and wants something 
 4. Report back with what was built, how to run it, and one line naming what was deliberately skipped/hardcoded (so it's not forgotten later).
 
 ## Explicitly out of scope in this mode
-- No `.gsd/` files
+- No `.slipstream/` files
 - No milestone roadmap
 - No test suite beyond "does it run"
 - No discussion of what this becomes later — that's what `/promote` is for

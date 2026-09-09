@@ -11,8 +11,8 @@
     "active_spec_approved": false
   },
   "artifacts": {
-    "discovery": ".gsd/DISCOVERY.md",
-    "roadmap": ".gsd/ROADMAP.md",
+    "discovery": ".slipstream/DISCOVERY.md",
+    "roadmap": ".slipstream/ROADMAP.md",
     "active_spec": null,
     "verification_report": null
   }

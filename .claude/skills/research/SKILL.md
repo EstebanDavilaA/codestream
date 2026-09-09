@@ -9,7 +9,7 @@ description: Use to check technical feasibility of features, query codebase abst
 
 ## Constraints
 - **Zero code edits**: Never modify implementation files or write test code.
-- **No state clutter**: Do not touch `.gsd/active/` or draft specs unless explicitly asked by the user to prepare input for `/plan`.
+- **No state clutter**: Do not touch `.slipstream/active/` or draft specs unless explicitly asked by the user to prepare input for `/plan`.
 - **Ground truth focus**: Always search and view actual codebase files before delivering opinions on feasibility or complexity.
 
 ## Process
@@ -22,7 +22,7 @@ description: Use to check technical feasibility of features, query codebase abst
 1b. **Commercial & Market Audit** (when the query is about business, not code):
    - Spawn the `product-strategist` subagent with the query and any intake data the user provided (problem, current state, monetization thesis, competitors).
    - It audits the app for market viability, launch-readiness, profitability, and positioning, and returns its six-section report (Strategic Verdict, Launch-Critical Scope, Target Market & Positioning, Monetization Engine, Vulnerabilities & Pivot Alternatives, Immediate Action Protocol).
-   - This path is still read-only: the strategist may inspect code/docs to ground its audit, but never edits code or writes `.gsd/` artifacts.
+   - This path is still read-only: the strategist may inspect code/docs to ground its audit, but never edits code or writes `.slipstream/` artifacts.
 
 2. **Empirical Codebase Inspection**:
    - Use search and view tools (`grep_search`, `view_file`, `list_dir`) to inspect existing types, functions, schemas, and dependencies.

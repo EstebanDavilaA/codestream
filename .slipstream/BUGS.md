@@ -1,6 +1,6 @@
 # SLIPSTREAM Bug Log
 
-This document tracks implementation defects and regressions recorded via `/log`. New feature requests and UX ideas are logged in `.gsd/FEATURES.md`.
+This document tracks implementation defects and regressions recorded via `/log`. New feature requests and UX ideas are logged in `.slipstream/FEATURES.md`.
 
 ---
 

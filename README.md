@@ -16,7 +16,7 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 
 **Three-layer verification, with the layers separated on purpose.** Layer 1 (tests + typecheck + build + lint, all four, all by exit code) runs inside `/execute`, which then halts. Layer 2 (an independent critic auditing the build against the approved spec) and Layer 3 (cross-milestone regression) run inside `/steer`, in a fresh context. The separation is deliberate: chaining all three off the end of a build compounds an already-large transcript with two more agent-heavy steps before any human has looked at the result.
 
-**A shared state directory both assistants read.** `.gsd/` holds the roadmap, the active spec, the append-only audit logs, and `STATE.json`. Every state transition is logged with which assistant made it, and a hard-blocking pre-flight check catches the cross-tool desync failures — stale state, duplicate active specs, corrupted JSON — before they compound.
+**A shared state directory both assistants read.** `.slipstream/` holds the roadmap, the active spec, the append-only audit logs, and `STATE.json`. Every state transition is logged with which assistant made it, and a hard-blocking pre-flight check catches the cross-tool desync failures — stale state, duplicate active specs, corrupted JSON — before they compound.
 
 **Failures route by cause, not by symptom.** `/diagnose` sits between any verification failure and any fix, because an implementation bug, a spec error, and a misunderstood intent are repaired at three different layers. Patching at the wrong one reproduces the same class of bug a milestone later.
 
@@ -47,22 +47,22 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 | `/steer` | 4 | Runs Layer 2 + 3, then presents the mandatory human checkpoint. |
 | `/verify` | — | Standalone Layer-1-only recheck. |
 | `/diagnose` | — | Root-cause routing for any failure. |
-| `/reset` | — | Safe rollback of code and `.gsd/` state to a clean checkpoint. |
+| `/reset` | — | Safe rollback of code and `.slipstream/` state to a clean checkpoint. |
 | `/research` | — | Feasibility and trade-off investigation. |
 | `/log` | — | Triages bugs into `BUGS.md` and features into `FEATURES.md`. |
 | `/extract-template` | — | Framework maintenance only — see below. |
 
-`/extract-template` is not part of the lifecycle above. It runs entirely outside a project's own `.gsd/` state: it diffs this project's `.claude/`, `.agents/`, and `.gsd/HARD_RULES.md`/`.gsd/templates/` against the upstream template repo, scrubs anything project-identifying, and — after explicit approval — writes the generic improvement back so the *next* project starts from it. It never touches app code, never touches `.gsd/` runtime state, and is exempt from rule 1's `SPEC_APPROVED` gate for the same reason rule 7's lightweight-task exception is: it isn't project output.
+`/extract-template` is not part of the lifecycle above. It runs entirely outside a project's own `.slipstream/` state: it diffs this project's `.claude/`, `.agents/`, and `.slipstream/HARD_RULES.md`/`.slipstream/templates/` against the upstream template repo, scrubs anything project-identifying, and — after explicit approval — writes the generic improvement back so the *next* project starts from it. It never touches app code, never touches `.slipstream/` runtime state, and is exempt from rule 1's `SPEC_APPROVED` gate for the same reason rule 7's lightweight-task exception is: it isn't project output.
 
 ---
 
 ## Using it on a new project
 
-1. Copy `.claude/`, `.agents/`, `.gsd/`, `CLAUDE.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one.
+1. Copy `.claude/`, `.agents/`, `.slipstream/`, `CLAUDE.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one.
 2. Fill in the **Project-specific context** block at the bottom of `CLAUDE.md` and `AGENTS.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
 3. Open the project and run `/onboard`.
 
-`.gsd/STATE.json` ships at `current_state: 0` with an empty history, so `/onboard` will route you into the discovery or prototype track cleanly.
+`.slipstream/STATE.json` ships at `current_state: 0` with an empty history, so `/onboard` will route you into the discovery or prototype track cleanly.
 
 ---
 
@@ -74,7 +74,7 @@ Same setup, but `/onboard` will detect the existing code and route to the codeba
 
 ## Session hygiene (recommended, not enforced)
 
-Unlike the hard rules, these aren't things an agent inside the framework can check or self-correct — they're operator habits that keep a long session cheap and the model's context window actually usable. Nothing in `.gsd/` verifies any of this, so it's on you:
+Unlike the hard rules, these aren't things an agent inside the framework can check or self-correct — they're operator habits that keep a long session cheap and the model's context window actually usable. Nothing in `.slipstream/` verifies any of this, so it's on you:
 
 - **Start a fresh session (`/clear` or equivalent) between milestones or phases**, not just when the context window forces it. `/execute` and `/steer` are already designed to run in separated contexts for exactly this reason (rule 15) — carrying that discipline into the surrounding session, not just inside the framework's own subagent boundaries, keeps compounding history from becoming the dominant cost.
 - **Don't switch models, reasoning-effort levels, or MCP server configuration mid-session.** Each of those invalidates the prompt cache built up so far, so a switch partway through a long `/execute` or `/plan` session quietly multiplies the cost of everything already in context.
@@ -93,7 +93,7 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
   AGENTS.md        Antigravity/Gemini directives — the same rules, tool-specific names
   skills/          23 skills: the same lifecycle, plus one persona skill per Claude subagent
                     (Gemini has no separate subagent-spawning mechanism — see below)
-.gsd/
+.slipstream/
   HARD_RULES.md    canonical rules + why each one exists
   STATE.json       live state, provenance-tagged history
   ROADMAP.md       vertical-slice milestone sequence
@@ -124,7 +124,7 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
 | `steer` | `critic`, `verifier` | Runs Layer 2 + 3, presents the mandatory human checkpoint. |
 | `verify` | — | Standalone Layer-1-only recheck. |
 | `diagnose` | — | Root-cause routing for any verification failure. |
-| `reset` | `reset-specialist` | Safe rollback of code and `.gsd/` state to a clean checkpoint. |
+| `reset` | `reset-specialist` | Safe rollback of code and `.slipstream/` state to a clean checkpoint. |
 | `research` | `researcher`, or `product-strategist` for commercial queries | Feasibility, trade-offs, or market/monetization investigation. |
 | `log` | — | Triages bugs into `BUGS.md`, features into `FEATURES.md`. |
 | `extract-template` | — | Pushes framework improvements upstream to this template repo. |
@@ -140,7 +140,7 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
 | `executor` | sonnet | `/execute` | Builds the approved spec's slice, plus its own smoke-test suite. |
 | `critic` | opus | `/steer` (Layer 2) | Independently audits the build against the approved spec's *intent*. Never trusts the executor's own tests as proof. |
 | `verifier` | haiku | `/steer` | Compiles the state-of-the-union summary and logs the steering decision. Distinct from `critic`: this one summarizes, it doesn't judge correctness. |
-| `reset-specialist` | sonnet | `/reset` | Cleans the working directory, syncs `.gsd/` state, verifies baseline health, documents the rollback. |
+| `reset-specialist` | sonnet | `/reset` | Cleans the working directory, syncs `.slipstream/` state, verifies baseline health, documents the rollback. |
 | `prototyper` | haiku | `/prototype` | Builds the minimal end-to-end walking skeleton. Optimizes for speed and validation, not completeness. |
 | `researcher` | sonnet | `/research` (technical queries) | Inspects codebase state, evaluates feasibility, explores trade-offs — read-only. |
 | `product-strategist` | sonnet | `/research` (commercial queries) | Market viability, pricing, positioning, ICP/TAM/SAM, unit economics — a commercial audit, not a technical one. |
@@ -149,7 +149,7 @@ The model choice per subagent is deliberate, not a default left unset: `critic`,
 
 ### Two implementations, one lifecycle
 
-Claude Code and Antigravity/Gemini run the identical `.gsd/`-gated lifecycle, but the tools model "the substantive work behind a skill" differently. Claude Code has a real subagent-spawning mechanism (the `Agent`/Task tool), so each orchestrating skill above hands off to a separate subagent file under `.claude/agents/`. Antigravity/Gemini has no equivalent spawning primitive, so the framework represents the same split as a **second skill file** — a "technical process instructions" persona the orchestrating skill invokes as a step, not a tool call. The pairing is 1:1:
+Claude Code and Antigravity/Gemini run the identical `.slipstream/`-gated lifecycle, but the tools model "the substantive work behind a skill" differently. Claude Code has a real subagent-spawning mechanism (the `Agent`/Task tool), so each orchestrating skill above hands off to a separate subagent file under `.claude/agents/`. Antigravity/Gemini has no equivalent spawning primitive, so the framework represents the same split as a **second skill file** — a "technical process instructions" persona the orchestrating skill invokes as a step, not a tool call. The pairing is 1:1:
 
 | Claude subagent (`.claude/agents/`) | Gemini persona skill (`.agents/skills/`) |
 |---|---|
@@ -250,13 +250,13 @@ Every one of these was cheap to prevent and expensive to find. That asymmetry is
 
 ### A note on the two-assistant split
 
-If you run both Claude Code and Antigravity/Gemini against one `.gsd/`, rule 6's strict alternation is the rule that will bite you first, and the pre-flight check in rule 10 is what catches it. The soft division of labor in rule 16 — Gemini for `/steer`, triage and small repairs; Claude Code for `/plan` and `/execute` — is a starting default, not a law. If you only use one assistant, delete rule 16 and simplify rule 6 rather than leaving instructions that describe a setup you do not have.
+If you run both Claude Code and Antigravity/Gemini against one `.slipstream/`, rule 6's strict alternation is the rule that will bite you first, and the pre-flight check in rule 10 is what catches it. The soft division of labor in rule 16 — Gemini for `/steer`, triage and small repairs; Claude Code for `/plan` and `/execute` — is a starting default, not a law. If you only use one assistant, delete rule 16 and simplify rule 6 rather than leaving instructions that describe a setup you do not have.
 
 ---
 
 ## The one thing not to do
 
-Do not weaken a hard rule in the moment because it feels like overhead on this particular change. `.gsd/HARD_RULES.md` opens with a section explaining what each rule cost before it existed — silent state corruption that passed every check, verification theater that reported PASS on a build that did not compile, audit trails written retroactively as narrative. Read that section before deciding a rule does not apply to you. If a rule genuinely doesn't fit your project, change it deliberately in `HARD_RULES.md` and mirror it into both directive files in the same sitting — that is a supported edit. Skipping it quietly is not.
+Do not weaken a hard rule in the moment because it feels like overhead on this particular change. `.slipstream/HARD_RULES.md` opens with a section explaining what each rule cost before it existed — silent state corruption that passed every check, verification theater that reported PASS on a build that did not compile, audit trails written retroactively as narrative. Read that section before deciding a rule does not apply to you. If a rule genuinely doesn't fit your project, change it deliberately in `HARD_RULES.md` and mirror it into both directive files in the same sitting — that is a supported edit. Skipping it quietly is not.
 
 ---
 

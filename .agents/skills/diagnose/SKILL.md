@@ -16,15 +16,15 @@ description: Use whenever a bug, wrong behavior, or critic FAIL is found — eit
    → Fix: do NOT patch the code first. Go back to `/plan` for that milestone, correct the spec, get it re-approved (`SPEC_APPROVED`), then re-execute. Patching code against a spec that's still wrong just creates a second gap between spec and reality.
 
 3. **Original intent was misunderstood** — the spec matches what was asked for in `/discover`, but what was asked for wasn't actually what was needed. This usually surfaces as "technically correct, but not useful."
-   → Fix: go back further, to `.gsd/DISCOVERY.md`. Re-open the relevant question, get a corrected answer from the user, and let that cascade forward through `/map` and `/plan` again. Do not try to patch your way out of a wrong premise at the execution layer.
+   → Fix: go back further, to `.slipstream/DISCOVERY.md`. Re-open the relevant question, get a corrected answer from the user, and let that cascade forward through `/map` and `/plan` again. Do not try to patch your way out of a wrong premise at the execution layer.
 
 ## Process
 
--1. **First action of a session, always**: if `.gsd/STATE.json` already exists, run the pre-flight integrity check (`.gsd/HARD_RULES.md` rule 10) before anything else — this is a hard block, not a formality.
+-1. **First action of a session, always**: if `.slipstream/STATE.json` already exists, run the pre-flight integrity check (`.slipstream/HARD_RULES.md` rule 10) before anything else — this is a hard block, not a formality.
 
 0. **Request a pointer before searching.** If the user's report doesn't already cite a milestone/phase and AC ID, ask for one before scanning anything: "Which milestone/phase and AC does this relate to, if known?" A cited AC lets you jump directly to the relevant spec section and implementation instead of re-reading the codebase to locate it. Only fall back to a broader search if the user genuinely doesn't know (e.g. behavior found outside any tested flow) — don't skip asking just because a rough guess is possible.
 
-1. Gather: what was expected, what actually happens, and where in the pipeline this was caught (critic report, regression failure, or a bug you noticed while using the app). `.gsd/archive/CRITIC_REPORT.md` is a cumulative log across every milestone — use the milestone/phase id (from the user or `.gsd/STATE.json`) to jump straight to that section rather than reading the whole file.
+1. Gather: what was expected, what actually happens, and where in the pipeline this was caught (critic report, regression failure, or a bug you noticed while using the app). `.slipstream/archive/CRITIC_REPORT.md` is a cumulative log across every milestone — use the milestone/phase id (from the user or `.slipstream/STATE.json`) to jump straight to that section rather than reading the whole file.
 2. Trace backward: check the implementation against the spec first (cause 1 vs. 2), then check the spec against the original discovery answers if the spec looks faithful but still feels wrong (cause 2 vs. 3).
 3. State the diagnosis explicitly before doing anything else:
    ```

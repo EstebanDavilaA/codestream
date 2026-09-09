@@ -1,13 +1,15 @@
 # SLIPSTREAM — Claude Code Directives
 
-SLIPSTREAM is a spec-gated, vertical-slice development framework designed to remove the two most expensive kinds of rework: building the wrong thing, and believing a broken build passed. It runs identically under Claude Code and Antigravity/Gemini against one shared `.gsd/` state directory.
+SLIPSTREAM is a spec-gated, vertical-slice development framework designed to remove the two most expensive kinds of rework: building the wrong thing, and believing a broken build passed. It runs identically under Claude Code and Antigravity/Gemini against one shared `.slipstream/` state directory.
 
 Two things distinguish it from a plain checklist:
 1. **A two-speed entry point** — prototype-first when the idea is still raw, spec-first when it isn't. Ceremony is matched to uncertainty, not applied uniformly.
 2. **Vertical-slice milestones with independent verification** — every milestone ships something a user can run, and no build is trusted on the strength of its own author's tests.
 
 ## Protected paths — never delete or overwrite
-`CLAUDE.md`, `.claude/` (this directory), `AGENTS.md`, `.agents/`, and `.gsd/` are the framework itself, not project output. No skill, subagent, or scaffolding step — including `/prototype` and its `prototyper` subagent — may delete, move, mass-overwrite, or `rm -rf` these paths under any circumstance, including "clean slate" project scaffolding, template initializers (`npm create`, `create-vite`, `cargo new`, `django-admin startproject`, etc.), or full-repo resets. If a scaffolding tool would normally wipe the target directory, run it in a temp directory and copy only the app files in, or scaffold in place file-by-file instead. If these paths ever go missing, stop and tell the user immediately rather than proceeding — do not silently continue.
+`CLAUDE.md`, `.claude/` (this directory), `AGENTS.md`, `.agents/`, and `.slipstream/` are the framework itself, not project output. No skill, subagent, or scaffolding step — including `/prototype` and its `prototyper` subagent — may delete, move, mass-overwrite, or `rm -rf` these paths under any circumstance, including "clean slate" project scaffolding, template initializers (`npm create`, `create-vite`, `cargo new`, `django-admin startproject`, etc.), or full-repo resets. If a scaffolding tool would normally wipe the target directory, run it in a temp directory and copy only the app files in, or scaffold in place file-by-file instead. If these paths ever go missing, stop and tell the user immediately rather than proceeding — do not silently continue.
+
+**Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
 
 ## Entry point
 Start with `/onboard`. It routes to:
@@ -29,31 +31,31 @@ Start with `/onboard`. It routes to:
 
 ## Hard rules (non-negotiable regardless of track)
 
-> **Canonical source: `.gsd/HARD_RULES.md`.** This section is a full copy for auto-load reliability, kept identical (modulo tool-specific names) with `AGENTS.md`'s copy. If you edit a rule, edit `.gsd/HARD_RULES.md` first, then mirror the change into both this file and `AGENTS.md` in the same sitting. `.gsd/HARD_RULES.md` also documents *why* each rule exists — read that before weakening one.
+> **Canonical source: `.slipstream/HARD_RULES.md`.** This section is a full copy for auto-load reliability, kept identical (modulo tool-specific names) with `AGENTS.md`'s copy. If you edit a rule, edit `.slipstream/HARD_RULES.md` first, then mirror the change into both this file and `AGENTS.md` in the same sitting. `.slipstream/HARD_RULES.md` also documents *why* each rule exists — read that before weakening one.
 
 1. No implementation code before either a prototype's validation target is explicit, or a spec is approved with the literal string `SPEC_APPROVED`.
 2. Milestones must be **vertical slices** — a user-visible outcome — never a horizontal layer (types-only, backend-only, UI-only). See `.claude/agents/roadmapper.md`.
 3. Neither `/execute` nor `/steer` trusts the executor's own tests as proof of correctness. `/execute` runs Layer 1 (executor's tests, plus typecheck/build/lint — rule 13) and then halts; `/steer` runs Layer 2 (an independent `critic` audit against the approved spec) and Layer 3 (a regression pass across all prior milestones) before presenting the steering checkpoint. See rule 15 for why Layer 2/3 moved out of an auto-chain and into `/steer`.
 4. Any verification failure routes through `/diagnose` before any fix is attempted — implementation bug, spec error, and misunderstood intent are fixed at different layers (`/execute`, `/plan`, `/discover` respectively), and patching at the wrong layer tends to reproduce the same class of bug later.
 5. `/steer` is a mandatory halt. Never auto-advance *past* it, even when the next step seems obvious — but see rule 15: the halt happens *at* the checkpoint, not before reaching it.
-6. **Strict alternation rule**: `.gsd/` state is shared between Claude Code and Antigravity (Gemini). Only one assistant operates on the active phase at a time; check `.gsd/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
+6. **Strict alternation rule**: `.slipstream/` state is shared between Claude Code and Antigravity (Gemini). Only one assistant operates on the active phase at a time; check `.slipstream/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
 7. **Lightweight-task exception**: a small, self-contained edit (numeric/config tweaks, single-file fixes, doc/log corrections) that introduces no new user-visible capability skips the spec/execute/verify/steer ceremony entirely — no spec, no critic, no steering log update. Just make the edit and confirm it with the user. If a "small" change turns out to touch multiple files, cross a milestone boundary, or introduce new behavior, stop and route it back into the normal lifecycle instead. **Lean on this exception readily** — don't default to full ceremony for a genuinely small change just because heavier process is available.
 8. **Framework paths are protected** (see "Protected paths" above). This overrides any instinct to regenerate/reset the project directory during prototyping or scaffolding.
 
 ### 10. Cross-tool pre-flight integrity check — mandatory, hard-blocking
-Before taking **any** action in a project where `.gsd/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order: (1) read `.gsd/STATE.json` in full; (2) check the most recent `state_history` entry's `agent` field (rule 11) and `state` value — if it names Antigravity/Gemini and doesn't look like a natural halt point (`state: 4`, or an "AWAITING SPEC_APPROVED"/"AWAITING re-SPEC_APPROVED" halt), **stop and tell the user plainly** before doing anything else, including read-only work; (3) verify `.gsd/active/` holds at most one spec file matching `artifacts.active_spec` — if not, **stop and flag it** rather than silently picking one; (4) verify that spec file and `STATE.json` are valid UTF-8 AND that `STATE.json` parses as valid JSON — an actual parse, not merely a UTF-8 decode; these are independent failure modes, and a file can pass one while failing the other. This is **hard-blocking**: a warning is easy to skim past under time pressure, and this exact failure mode has cost real time before (see `.gsd/HARD_RULES.md`, "Why these rules exist").
+Before taking **any** action in a project where `.slipstream/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order: (1) read `.slipstream/STATE.json` in full; (2) check the most recent `state_history` entry's `agent` field (rule 11) and `state` value — if it names Antigravity/Gemini and doesn't look like a natural halt point (`state: 4`, or an "AWAITING SPEC_APPROVED"/"AWAITING re-SPEC_APPROVED" halt), **stop and tell the user plainly** before doing anything else, including read-only work; (3) verify `.slipstream/active/` holds at most one spec file matching `artifacts.active_spec` — if not, **stop and flag it** rather than silently picking one; (4) verify that spec file and `STATE.json` are valid UTF-8 AND that `STATE.json` parses as valid JSON — an actual parse, not merely a UTF-8 decode; these are independent failure modes, and a file can pass one while failing the other. This is **hard-blocking**: a warning is easy to skim past under time pressure, and this exact failure mode has cost real time before (see `.slipstream/HARD_RULES.md`, "Why these rules exist").
 
 ### 11. State provenance
-Every `state_history` entry appended to `.gsd/STATE.json` must include an `"agent"` field: `"claude-code"` or `"antigravity-gemini"`. This is what rule 10 reads. Add it retroactively if you find an entry missing it.
+Every `state_history` entry appended to `.slipstream/STATE.json` must include an `"agent"` field: `"claude-code"` or `"antigravity-gemini"`. This is what rule 10 reads. Add it retroactively if you find an entry missing it.
 
 ### 12. Archive files are append-only
-`.gsd/archive/CRITIC_REPORT.md`, `VERIFICATION_REPORT.md`, and `STEERING_LOG.md` are cumulative logs across the entire project's lifetime. Read the current file first, then **append** a new dated section — never truncate or overwrite existing content.
+`.slipstream/archive/CRITIC_REPORT.md`, `VERIFICATION_REPORT.md`, and `STEERING_LOG.md` are cumulative logs across the entire project's lifetime. Read the current file first, then **append** a new dated section — never truncate or overwrite existing content.
 
 ### 13. Layer 1 (run by `/execute`) is four gates, not one
 "Run the executor's tests" means the test suite **and** typecheck **and** build **and** lint — all four, all reported by exit code — not just whichever the spec's own AC matrix happened to enumerate. A green test suite with a broken build is not a Layer 1 pass. Substitute this project's real commands for each gate; where a gate genuinely doesn't apply to the stack, record "N/A — no build step in this project" rather than silently dropping it. Note the specific trap: test runners that strip types without checking them (esbuild-based runners and their equivalents in other ecosystems) are structurally incapable of catching a type-contract regression. Layer 1 runs inside `/execute` itself (rule 15) — it is not deferred to a separate `/verify` invocation.
 
 ### 14. UTF-8, no BOM, for every framework file
-Specs, `STATE.json`, archive logs, `.gsd/BUGS.md`, `.gsd/FEATURES.md` — all UTF-8 text. If a tool's file-write path defaults to something else on a given platform, that's a bug in that session to route around, not a variance to leave for the next reader to discover.
+Specs, `STATE.json`, archive logs, `.slipstream/BUGS.md`, `.slipstream/FEATURES.md` — all UTF-8 text. If a tool's file-write path defaults to something else on a given platform, that's a bug in that session to route around, not a variance to leave for the next reader to discover.
 
 ### 15. `/execute` halts after Layer 1; Layer 2/3 (critic + regression) run inside `/steer`, not auto-chained from `/execute`
 Auto-chaining `/execute` straight into `/verify` (which immediately spawned `critic`) burns tokens at a high rate: the critic audit and the regression pass fire in the same continuous context as the entire build, compounding an already-large transcript with two more agent-heavy steps before any human has looked at the result.
@@ -77,10 +79,10 @@ Every `/plan` draft, every `SPEC_APPROVED` (or re-`SPEC_APPROVED`), every `/exec
 Before `VERIFICATION_REPORT.md`'s Layer 2 section cites a dated `CRITIC_REPORT.md` entry (by date, milestone/phase, or verdict), that exact entry must already be written and saved on disk — confirm by reading `CRITIC_REPORT.md` back, not by assuming the critic step happened because it was supposed to. If Layer 2 was skipped, deferred, or the `critic` subagent was unavailable in that pass, `VERIFICATION_REPORT.md` must say so plainly ("Layer 2: not run this pass") rather than write a verdict that implies an audit occurred.
 
 ### 20. Archiving a spec removes the `active/` copy in the same action
-When `/steer` (or the `verifier` subagent) archives a spec into `.gsd/archive/specs/` at milestone/phase closure, the corresponding copy in `.gsd/active/` is removed as part of that same action — verified afterward by re-listing `.gsd/active/`, not assumed to have succeeded. A byte-identical duplicate left behind in `active/` is exactly the ambiguity rule 10 point 3 exists to catch in whichever session opens next.
+When `/steer` (or the `verifier` subagent) archives a spec into `.slipstream/archive/specs/` at milestone/phase closure, the corresponding copy in `.slipstream/active/` is removed as part of that same action — verified afterward by re-listing `.slipstream/active/`, not assumed to have succeeded. A byte-identical duplicate left behind in `active/` is exactly the ambiguity rule 10 point 3 exists to catch in whichever session opens next.
 
 ### 21. `state_history` is archived by milestone boundary, not left to grow unbounded
-When `/steer` closes out a milestone (not a phase — phases within an open milestone stay inline), move every `state_history` entry belonging to milestones older than the current milestone and the one immediately before it out of `.gsd/STATE.json` and append them to `.gsd/archive/STATE_HISTORY.md`, in the same append-only style as rule 12's other archive files. `STATE.json` keeps only the current and immediately-prior milestone's entries inline. This is a `STATE.json` edit like any other — it goes through rule 17's read-parse-mutate-serialize-reparse discipline, not a text splice. Rule 10's pre-flight only ever needed the most recent entry plus the top-level state fields, both of which stay inline, so this doesn't weaken it.
+When `/steer` closes out a milestone (not a phase — phases within an open milestone stay inline), move every `state_history` entry belonging to milestones older than the current milestone and the one immediately before it out of `.slipstream/STATE.json` and append them to `.slipstream/archive/STATE_HISTORY.md`, in the same append-only style as rule 12's other archive files. `STATE.json` keeps only the current and immediately-prior milestone's entries inline. This is a `STATE.json` edit like any other — it goes through rule 17's read-parse-mutate-serialize-reparse discipline, not a text splice. Rule 10's pre-flight only ever needed the most recent entry plus the top-level state fields, both of which stay inline, so this doesn't weaken it.
 
 ## Directory reference
 
@@ -99,7 +101,7 @@ When `/steer` closes out a milestone (not a phase — phases within an open mile
 │   ├── steer/SKILL.md          ← State 4 (runs Layer 2/3)
 │   ├── research/SKILL.md       ← feasibility & trade-offs
 │   ├── reset/SKILL.md          ← state & code rollback
-│   └── log/SKILL.md            ← .gsd/BUGS.md & .gsd/FEATURES.md triage
+│   └── log/SKILL.md            ← .slipstream/BUGS.md & .slipstream/FEATURES.md triage
 └── agents/
     ├── codebase-mapper.md
     ├── intent-discoverer.md
@@ -115,7 +117,7 @@ When `/steer` closes out a milestone (not a phase — phases within an open mile
 ```
 
 ```
-.gsd/                            ← runtime state, unchanged across IDEs
+.slipstream/                            ← runtime state, unchanged across IDEs
 ├── HARD_RULES.md                ← canonical rules, mirrored into CLAUDE.md/AGENTS.md
 ├── STATE.json                   ← every state_history entry carries an "agent" field (rule 11)
 ├── DISCOVERY.md
@@ -138,7 +140,7 @@ When `/steer` closes out a milestone (not a phase — phases within an open mile
     └── STATE_HISTORY.md         ← state_history entries retired per rule 21
 ```
 
-`critic` reads only the single spec file in `.gsd/active/` (never a glob over historical specs). `verifier` moves the outgoing spec and manual-verification evidence into `archive/` at `/steer`, once a milestone/phase genuinely closes.
+`critic` reads only the single spec file in `.slipstream/active/` (never a glob over historical specs). `verifier` moves the outgoing spec and manual-verification evidence into `archive/` at `/steer`, once a milestone/phase genuinely closes.
 
 ## Project-specific context
 

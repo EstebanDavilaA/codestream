@@ -1,15 +1,15 @@
 ---
 name: reset_checkpoint
-description: Technical process instructions for safe reset & state alignment. Spawned during /reset to clean working directory, sync .gsd runtime state, verify baseline health, and document the rollback in state history.
+description: Technical process instructions for safe reset & state alignment. Spawned during /reset to clean working directory, sync .slipstream runtime state, verify baseline health, and document the rollback in state history.
 ---
 
 # Reset Checkpoint Process
 
-Safely restore codebase and `.gsd/` state to a verified clean point when implementation breaks features or corrupts project health.
+Safely restore codebase and `.slipstream/` state to a verified clean point when implementation breaks features or corrupts project health.
 
 ## Constraints
 - Never execute a hard reset without first logging affected files or confirming uncommitted work is stashed/backed up.
-- Ensure `.gsd/STATE.json`, `.gsd/ROADMAP.md`, and active specs in `.gsd/active/` match the restored point (no orphaned active specs pointing to rolled-back code).
+- Ensure `.slipstream/STATE.json`, `.slipstream/ROADMAP.md`, and active specs in `.slipstream/active/` match the restored point (no orphaned active specs pointing to rolled-back code).
 - Never report completion until post-reset build & test suite commands are executed and confirmed clean.
 
 ## Process
@@ -20,15 +20,15 @@ Safely restore codebase and `.gsd/` state to a verified clean point when impleme
 
 2. **Execute Git Restoration:**
    - Execute git reset (`git reset --hard <target_commit>`).
-   - Remove untracked build artifacts or transient files if necessary (`git clean -fd` with care, excluding `.gsd/`).
+   - Remove untracked build artifacts or transient files if necessary (`git clean -fd` with care, excluding `.slipstream/`).
 
-3. **Synchronize `.gsd/` Runtime State:**
-   - Append a `RESET` entry to `state_history` in `.gsd/STATE.json` detailing:
+3. **Synchronize `.slipstream/` Runtime State:**
+   - Append a `RESET` entry to `state_history` in `.slipstream/STATE.json` detailing:
      - Timestamp
      - Target commit or milestone/phase restored
      - Reason for reset
      - Restored state gate (`verified`, `steered`, or `reset`)
-   - Clean up or archive any obsolete spec files in `.gsd/active/` into `.gsd/archive/pre_reset/` if rolling back before that spec was created.
+   - Clean up or archive any obsolete spec files in `.slipstream/active/` into `.slipstream/archive/pre_reset/` if rolling back before that spec was created.
 
 4. **Verify Baseline Stability:**
    - Run the project's test suite using the command recorded in the project-specific section of `CLAUDE.md` / `AGENTS.md` (rule 13).

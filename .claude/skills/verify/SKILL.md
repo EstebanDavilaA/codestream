@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Standalone, user-invoked Layer-1-only recheck (tests, typecheck, build, lint). Use to re-confirm a build is still green after an unrelated environment or dependency change. The critic audit and regression pass no longer run here — they run inside /steer, right before the steering checkpoint (.gsd/HARD_RULES.md rule 15).
+description: Standalone, user-invoked Layer-1-only recheck (tests, typecheck, build, lint). Use to re-confirm a build is still green after an unrelated environment or dependency change. The critic audit and regression pass no longer run here — they run inside /steer, right before the steering checkpoint (.slipstream/HARD_RULES.md rule 15).
 ---
 
 # Layer 1 Recheck
@@ -8,7 +8,7 @@ description: Standalone, user-invoked Layer-1-only recheck (tests, typecheck, bu
 **Rule:** This skill is Layer 1 only. `/execute` already runs Layer 1 once as part of building the slice and halts on completion — you normally don't need to invoke `/verify` separately. Use it standalone when something outside the build itself might have changed (dependency bump, environment change, a fix applied by hand) and you want to re-confirm the four gates are still green before running `/steer`.
 
 ## What to do
-Run the test suite, typecheck, build, and lint — all four, every time, each reported by actual exit code (`.gsd/HARD_RULES.md` rule 13). Do not stop at "tests pass."
+Run the test suite, typecheck, build, and lint — all four, every time, each reported by actual exit code (`.slipstream/HARD_RULES.md` rule 13). Do not stop at "tests pass."
 
 ## Verdict logic
 - All four clear → tell the user Layer 1 is green and that `/steer` is next (it runs the critic audit and regression pass itself before presenting the checkpoint).
