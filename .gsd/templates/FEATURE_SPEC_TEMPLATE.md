@@ -13,6 +13,12 @@
 - **Fallback Retention**: [e.g. When zero qualifying items match, retain prior state values rather than leaking default placeholders]
 - **Transition Mechanics**: [e.g. Animated fast lerp vs same-frame teleport, exact thresholds and lerp factors]
 
+### Out of Scope (Explicit Exclusions, Binding)
+- [Something a reader might reasonably expect this phase to cover, named explicitly as deferred — and to which milestone/phase, if known. e.g. "Retry/backoff on failed writes — deferred to M6_P1, this phase assumes writes succeed."]
+- [A component or file adjacent to this work that stays untouched on purpose. e.g. "The legacy `formatLegacyDate()` path is not migrated in this phase — new call sites only."]
+
+This section exists to shrink the implementation's "creative area" as much as the Resolved Ambiguities above do — everything decided in scope by inclusion, everything decided out of scope by name. An empty section is a signal the phase's boundary wasn't actually thought through, not evidence there's nothing to exclude. `critic` (Layer 2) treats an item listed here as authorized non-work, not a gap — and treats material scope creep *beyond* what's listed here as its own finding.
+
 ---
 
 ## 1. Data Schema & Contracts

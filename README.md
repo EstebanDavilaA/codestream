@@ -50,6 +50,9 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 | `/reset` | — | Safe rollback of code and `.gsd/` state to a clean checkpoint. |
 | `/research` | — | Feasibility and trade-off investigation. |
 | `/log` | — | Triages bugs into `BUGS.md` and features into `FEATURES.md`. |
+| `/extract-template` | — | Framework maintenance only — see below. |
+
+`/extract-template` is not part of the lifecycle above. It runs entirely outside a project's own `.gsd/` state: it diffs this project's `.claude/`, `.agents/`, and `.gsd/HARD_RULES.md`/`.gsd/templates/` against the upstream template repo, scrubs anything project-identifying, and — after explicit approval — writes the generic improvement back so the *next* project starts from it. It never touches app code, never touches `.gsd/` runtime state, and is exempt from rule 1's `SPEC_APPROVED` gate for the same reason rule 7's lightweight-task exception is: it isn't project output.
 
 ---
 
@@ -69,17 +72,27 @@ Same setup, but `/onboard` will detect the existing code and route to the codeba
 
 ---
 
+## Session hygiene (recommended, not enforced)
+
+Unlike the hard rules, these aren't things an agent inside the framework can check or self-correct — they're operator habits that keep a long session cheap and the model's context window actually usable. Nothing in `.gsd/` verifies any of this, so it's on you:
+
+- **Start a fresh session (`/clear` or equivalent) between milestones or phases**, not just when the context window forces it. `/execute` and `/steer` are already designed to run in separated contexts for exactly this reason (rule 15) — carrying that discipline into the surrounding session, not just inside the framework's own subagent boundaries, keeps compounding history from becoming the dominant cost.
+- **Don't switch models, reasoning-effort levels, or MCP server configuration mid-session.** Each of those invalidates the prompt cache built up so far, so a switch partway through a long `/execute` or `/plan` session quietly multiplies the cost of everything already in context.
+- **Watch what's actually landing in context.** Unfiltered CLI output and verbose MCP tool manuals accumulate silently across a session; if a tool's output is large and mostly noise, prefer a form of the command that summarizes or truncates it.
+
+---
+
 ## Layout
 
 ```
 CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of the hard rules
 .claude/
-  skills/          13 lifecycle commands
-  agents/          11 subagents (mapper, planner, executor, critic, verifier, …)
+  skills/          14 skills: 13 lifecycle commands + /extract-template (framework maintenance)
+  agents/          11 subagents, each spawned by exactly one skill above
 .agents/
   AGENTS.md        Antigravity/Gemini directives — the same rules, tool-specific names
-  skills/          the same lifecycle as Gemini personas
-  workflows/       slash-command definitions
+  skills/          23 skills: the same lifecycle, plus one persona skill per Claude subagent
+                    (Gemini has no separate subagent-spawning mechanism — see below)
 .gsd/
   HARD_RULES.md    canonical rules + why each one exists
   STATE.json       live state, provenance-tagged history
@@ -88,9 +101,71 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
   BUGS.md          defect log
   FEATURES.md      feature & UX backlog
   templates/       blank forms the skills fill in
+  documents/       project reference material agents may read
+  scratch/         throwaway helper scripts and manifests
+  drafts/          ungated spec drafts (never SPEC_APPROVED) — outside the tracked lifecycle
   active/          the single approved spec being built right now
   archive/         append-only audit trail across the project's lifetime
+                    (specs/, manual_verification/, pre_reset/, stashed_experiments/,
+                     CRITIC_REPORT.md, VERIFICATION_REPORT.md, STEERING_LOG.md, STATE_HISTORY.md)
 ```
+
+### The 14 Claude Code skills
+
+| Skill | Spawns | Purpose |
+|---|---|---|
+| `onboard` | `codebase-mapper` (existing-code path) | Entry router — picks prototype, discovery, or codebase-audit track. |
+| `prototype` | `prototyper` | Fast walking skeleton from a raw idea; minimal ceremony. |
+| `promote` | `codebase-mapper`, `roadmapper` | Formalizes a validated prototype into the structured lifecycle. |
+| `discover` | `intent-discoverer` | State 0 — structured discovery document, zero code/architecture. |
+| `map` | `codebase-mapper`, `roadmapper` | Audits an existing codebase into a baseline vertical-slice roadmap. |
+| `plan` | `planner` | Drafts the feature spec; halts for literal `SPEC_APPROVED`. |
+| `execute` | `executor` | Builds the slice, runs Layer 1 (test/typecheck/build/lint), halts. |
+| `steer` | `critic`, `verifier` | Runs Layer 2 + 3, presents the mandatory human checkpoint. |
+| `verify` | — | Standalone Layer-1-only recheck. |
+| `diagnose` | — | Root-cause routing for any verification failure. |
+| `reset` | `reset-specialist` | Safe rollback of code and `.gsd/` state to a clean checkpoint. |
+| `research` | `researcher`, or `product-strategist` for commercial queries | Feasibility, trade-offs, or market/monetization investigation. |
+| `log` | — | Triages bugs into `BUGS.md`, features into `FEATURES.md`. |
+| `extract-template` | — | Pushes framework improvements upstream to this template repo. |
+
+### The 11 Claude Code subagents
+
+| Subagent | Model | Spawned by | Does |
+|---|---|---|---|
+| `intent-discoverer` | sonnet | `/discover` | Converts a project description into a structured discovery doc. Never writes code or proposes architecture. |
+| `codebase-mapper` | opus | `/onboard`, `/map`, `/promote` | Audits code that already exists into a vertical-slice roadmap, grounded in what's actually there. |
+| `roadmapper` | opus | `/map`, `/promote`, State 1 | Converts discovery answers or a codebase audit into decoupled, vertical-slice milestones. Rejects horizontal layering. |
+| `planner` | opus | `/plan` | Drafts the feature spec, including data contracts and the acceptance-criteria matrix `critic` will later audit against. |
+| `executor` | sonnet | `/execute` | Builds the approved spec's slice, plus its own smoke-test suite. |
+| `critic` | opus | `/steer` (Layer 2) | Independently audits the build against the approved spec's *intent*. Never trusts the executor's own tests as proof. |
+| `verifier` | haiku | `/steer` | Compiles the state-of-the-union summary and logs the steering decision. Distinct from `critic`: this one summarizes, it doesn't judge correctness. |
+| `reset-specialist` | sonnet | `/reset` | Cleans the working directory, syncs `.gsd/` state, verifies baseline health, documents the rollback. |
+| `prototyper` | haiku | `/prototype` | Builds the minimal end-to-end walking skeleton. Optimizes for speed and validation, not completeness. |
+| `researcher` | sonnet | `/research` (technical queries) | Inspects codebase state, evaluates feasibility, explores trade-offs — read-only. |
+| `product-strategist` | sonnet | `/research` (commercial queries) | Market viability, pricing, positioning, ICP/TAM/SAM, unit economics — a commercial audit, not a technical one. |
+
+The model choice per subagent is deliberate, not a default left unset: `critic`, `planner`, `roadmapper`, and `codebase-mapper` get the strongest model because their entire job is catching what a weaker pass would miss (rule 3's premise — the agent auditing correctness must not be the weak link). `verifier` and `prototyper` get the cheapest model because their jobs are compilation/speed, not judgment. Resist the temptation to downgrade `critic` for cost savings — that's the one subagent where doing so defeats the reason it exists.
+
+### Two implementations, one lifecycle
+
+Claude Code and Antigravity/Gemini run the identical `.gsd/`-gated lifecycle, but the tools model "the substantive work behind a skill" differently. Claude Code has a real subagent-spawning mechanism (the `Agent`/Task tool), so each orchestrating skill above hands off to a separate subagent file under `.claude/agents/`. Antigravity/Gemini has no equivalent spawning primitive, so the framework represents the same split as a **second skill file** — a "technical process instructions" persona the orchestrating skill invokes as a step, not a tool call. The pairing is 1:1:
+
+| Claude subagent (`.claude/agents/`) | Gemini persona skill (`.agents/skills/`) |
+|---|---|
+| `intent-discoverer` | `discover_intent` |
+| `codebase-mapper` | `map_codebase` |
+| `roadmapper` | `roadmap_slices` |
+| `planner` | `plan_spec` |
+| `executor` | `execute_feature` |
+| `critic` | `audit_critic` |
+| `verifier` | `verify_steer` |
+| `reset-specialist` | `reset_checkpoint` |
+| `prototyper` | `prototype_fast` |
+| `product-strategist` | `product_strategist` |
+| *(none — `researcher`'s job stays inline in `research`)* | *(none)* |
+
+Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
 ---
 
@@ -182,3 +257,9 @@ If you run both Claude Code and Antigravity/Gemini against one `.gsd/`, rule 6's
 ## The one thing not to do
 
 Do not weaken a hard rule in the moment because it feels like overhead on this particular change. `.gsd/HARD_RULES.md` opens with a section explaining what each rule cost before it existed — silent state corruption that passed every check, verification theater that reported PASS on a build that did not compile, audit trails written retroactively as narrative. Read that section before deciding a rule does not apply to you. If a rule genuinely doesn't fit your project, change it deliberately in `HARD_RULES.md` and mirror it into both directive files in the same sitting — that is a supported edit. Skipping it quietly is not.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

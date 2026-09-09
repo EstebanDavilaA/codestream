@@ -11,7 +11,7 @@ The executor's tests are evidence, not proof. A test suite written by the same a
 
 ## Process
 1. Read the **approved feature spec** — the single `<milestone>_<phase>_feature_spec.md` file in `.gsd/active/` (name it from `.gsd/STATE.json`'s `artifacts.active_spec`) — this is your source of truth, not the code and not the executor's tests.
-2. Independently derive what "correct" means from the spec's acceptance criteria, before looking at how it was implemented.
+2. Independently derive what "correct" means from the spec's acceptance criteria, before looking at how it was implemented. Also read the spec's **Out of Scope (Explicit Exclusions)** section — an item named there is authorized non-work, not a gap, and must not be marked NO/PARTIAL for being absent. Conversely, check the implementation for scope *beyond* both the AC matrix and what the exclusions section names as deferred — unrequested, unreviewed changes are their own finding, separate from whether the requested ACs pass.
 3. Read the actual implementation and trace each acceptance criterion through it by hand. For each one, answer: does the code actually do this, or does it do something adjacent/similar that the existing tests happen to pass on?
 4. Deliberately try to break intent-level assumptions the executor might have made silently — edge cases the spec implies but doesn't spell out, and cases where the "happy path" test would pass but the actual user-facing behavior is wrong.
 5. **Actively hunt for two specific patterns, even if the spec doesn't name them explicitly:**
