@@ -7,6 +7,13 @@
 1. [Key Behavior 1]
 2. [Key Behavior 2]
 
+### Binding Declarations — Read This First
+The four subsections below — **Resolved Ambiguities**, **Norms**, **Safeguards**, **Out of Scope** — are binding. `critic` (Layer 2) audits against them, treats what they name as authorised non-work, and treats what they omit as unwritten.
+
+**Every binding declaration must map to at least one row in the Acceptance Criteria matrix below.** A constraint that is declared binding but carries no AC is unverifiable: the executor cannot know when it is satisfied, and `critic` will report it as a finding rather than a pass. Where a declaration genuinely cannot be checked mechanically, say so inside the declaration itself — `critic` will then judge it against its stated intent instead of a test.
+
+This applies to **all four** subsections, not only Norms. The failure it prevents, in the shape it actually occurs: a constraint written as binding ("allowed precision is an integer in range `[0, 10]`") that never becomes an AC, so the executor implements only the half the AC matrix happens to test. The omitted half then surfaces at Layer 2 as a PARTIAL, after a build — instead of at plan time, where it was a one-line fix.
+
 ### Resolved Ambiguities (Binding)
 - **Operator Precision & Boundaries**: [e.g. `>=` vs `>`, exact inclusive/exclusive float bounds e.g. `[-20.0, 0.5]` vs `-20.01` / `0.51`]
 - **Gate Interplay**: [e.g. Replaces/augments temporal gate, rendering window vs focus window separation]
@@ -35,6 +42,8 @@ Hard constraints on **quality**, distinct from Out of Scope below, which governs
 - **Refactoring limits**: [e.g. "extend `UserRepository`; do not restructure it in this phase."]
 
 Where a number genuinely isn't knowable yet, state the *direction and bound* ("must not regress against the current baseline") rather than leaving the line blank. An empty Safeguards section is the same signal an empty Out of Scope section sends: the boundary wasn't thought through, not that nothing needed excluding.
+
+Each safeguard also needs an AC row — test type `Measured` for a numeric budget, `Unit Test` for an error contract or data invariant. A quantified budget that no test asserts will be reported PARTIAL by `critic`, and correctly so: measuring it once by hand is not the same as verifying it, and an unasserted number is a number nobody notices regressing.
 
 ### Out of Scope (Explicit Exclusions, Binding)
 - [Something a reader might reasonably expect this phase to cover, named explicitly as deferred — and to which milestone/phase, if known. e.g. "Retry/backoff on failed writes — deferred to M6_P1, this phase assumes writes succeed."]

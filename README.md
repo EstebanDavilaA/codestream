@@ -278,6 +278,10 @@ The second set can fail. The first can only be argued about — which means it g
 
 A Safeguard the spec states but nothing measures is worse than no Safeguard at all, because it looks like coverage. `critic` is instructed to mark such a line PARTIAL rather than assume it holds.
 
+This obligation is not specific to Norms and Safeguards. **Every binding declaration needs an AC row** — Resolved Ambiguities and Out of Scope included — because a binding constraint the AC matrix doesn't test is one the executor can't know it has met.
+
+The failure has a specific shape, and it appeared in this framework's own dogfood run: a spec declared `allowed precision is an integer in range [0, 10]` as binding, then gave AC rows to the negative and non-integer cases but not to the upper bound. The executor implemented exactly what the matrix asked for. `precision = 11` passed silently, and the gap surfaced at Layer 2 as a PARTIAL — after the build — when it would have been a one-line fix at plan time. The constraint was written down. It just wasn't checkable.
+
 ### Use the lightweight-task exception aggressively
 
 Rule 7 exists because process applied uniformly is process that gets abandoned. A tooltip typo, a threshold constant, a mislabeled column — make the edit, confirm it, move on. No spec, no critic, no steering log.
