@@ -202,6 +202,8 @@ Claude Code and Antigravity/Gemini run the identical `.codestream/`-gated lifecy
 
 Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
+**A third assistant is not excluded.** The `.claude/` + `.agents/` pairing above is the framework's current shape, not a limit on how many assistants may read one `.codestream/`. Rule 11's `agent` list is open for exactly this reason, and rule 10's pre-flight test is worded as "an assistant other than the one you are" rather than naming a specific one, so it keeps working as the list grows. When a new assistant first operates on a project's state, record it truthfully and add its value to rule 11 — do not write `claude-code` for a session that was not Claude Code, and do not treat an unfamiliar value as corruption. The same warning from `/extract-template` applies here: an inaccurate audit trail is worse than a short one.
+
 ---
 
 ## Worked examples
@@ -253,6 +255,34 @@ RA-2 — Card-component boundary scope in P2.
 ```
 
 RA-2 is doing quiet, important work: it names what is *deliberately not* in this slice and where it went instead. Without that line, the critic in Layer 2 flags an incomplete refactor as a defect, and you spend a `/diagnose` cycle rediscovering a decision you already made.
+
+### Norms and Safeguards: say it, then make it checkable
+
+Two more binding sections exist to close the gap between "we agreed on a standard" and "a different agent can tell whether it was met."
+
+**Norms** name the coding patterns this phase follows, each with a cited precedent. The precedent is the whole point: "follow the existing convention" is unfollowable when the codebase has three conventions. `constructor injection only — precedent: FooService, BarService` gives the executor something to match and the critic something to check. And every norm needs an AC row, because a norm in a binding section with nothing testing it is a claim nobody will ever evaluate.
+
+**Safeguards** apply the same discipline to quality rather than scope — and they have to carry numbers. Compare:
+
+```
+- Performance: search should be reasonably fast.
+```
+
+with:
+
+```
+- Performance: p95 < 200ms for a 1k-row search, measured at the endpoint.
+- Error contract: duplicate email returns 409 with {"code":"EMAIL_TAKEN"}.
+- Must not change: normalizeQuery() output stays byte-identical — the cache key depends on it.
+```
+
+The second set can fail. The first can only be argued about — which means it gets argued about at exactly the worst moment, after the build, when the critic has to decide whether to PASS it.
+
+A Safeguard the spec states but nothing measures is worse than no Safeguard at all, because it looks like coverage. `critic` is instructed to mark such a line PARTIAL rather than assume it holds.
+
+This obligation is not specific to Norms and Safeguards. **Every binding declaration needs an AC row** — Resolved Ambiguities and Out of Scope included — because a binding constraint the AC matrix doesn't test is one the executor can't know it has met.
+
+The failure has a specific shape, and it appeared in this framework's own dogfood run: a spec declared `allowed precision is an integer in range [0, 10]` as binding, then gave AC rows to the negative and non-integer cases but not to the upper bound. The executor implemented exactly what the matrix asked for. `precision = 11` passed silently, and the gap surfaced at Layer 2 as a PARTIAL — after the build — when it would have been a one-line fix at plan time. The constraint was written down. It just wasn't checkable.
 
 ### Use the lightweight-task exception aggressively
 

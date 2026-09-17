@@ -34,7 +34,7 @@ Read this section before weakening any rule below. Each one is cheaper to follow
 Before taking **any** action in a project where `.codestream/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order:
 
 1. **Read `.codestream/STATE.json` in full.**
-2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and its `state` value. If it names the *other* tool and does not look like a natural halt point (`state: 4` / a `/steer` checkpoint, or an explicit "AWAITING SPEC_APPROVED" / "AWAITING re-SPEC_APPROVED" halt) — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
+2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and its `state` value. If it names an assistant *other than the one you are* and does not look like a natural halt point (`state: 4` / a `/steer` checkpoint, or an explicit "AWAITING SPEC_APPROVED" / "AWAITING re-SPEC_APPROVED" halt) — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
 3. **Verify `.codestream/active/` contains at most one spec file, and that it matches `artifacts.active_spec`.** If more than one spec file exists, or the pointer doesn't match what's on disk, **stop and flag the discrepancy** rather than silently picking one or archiving the "old" one yourself.
 4. **Verify that spec file, and `STATE.json`, are valid UTF-8 text with no encoding corruption, AND that `STATE.json` parses as valid JSON** — an actual `JSON.parse` / `json.load`, not merely a successful text decode. These are independent properties: a file can be perfectly valid UTF-8 while still being structurally broken JSON, and that exact combination has shipped undetected before. Either failure is a cross-tool corruption signal and stops you.
 
@@ -42,7 +42,7 @@ This check is **hard-blocking**: if any of the four steps fails, do not proceed 
 
 ### 11. State provenance
 
-Every `state_history` entry appended to `.codestream/STATE.json` must include an `"agent"` field: `"claude-code"` or `"antigravity-gemini"`. This is what rule 10's check reads. An entry without this field is itself a rule violation — add it retroactively if you find one missing (don't rewrite the entry's other content, just add the field).
+Every `state_history` entry appended to `.codestream/STATE.json` must include an `"agent"` field naming the assistant that made it. Known values: `"claude-code"`, `"antigravity-gemini"`, `"github-copilot"` — an **open** list, not a closed enum. A third assistant operating on the state is a real situation, not a rule violation: when one first appears, add its value here and record it truthfully rather than writing a name that isn't the one in use. This is what rule 10's check reads, which is why rule 10's test is worded as "an assistant other than the one you are" rather than naming a specific one. An entry without this field is itself a rule violation — add it retroactively if you find one missing (don't rewrite the entry's other content, just add the field).
 
 ### 12. Archive files are append-only
 
