@@ -14,6 +14,8 @@ The four subsections below — **Resolved Ambiguities**, **Norms**, **Safeguards
 
 This applies to **all four** subsections, not only Norms. The failure it prevents, in the shape it actually occurs: a constraint written as binding ("allowed precision is an integer in range `[0, 10]`") that never becomes an AC, so the executor implements only the half the AC matrix happens to test. The omitted half then surfaces at Layer 2 as a PARTIAL, after a build — instead of at plan time, where it was a one-line fix.
 
+**Absolute wording needs a stated domain.** A constraint phrased as "never", "no X", or "always" is a claim about *every* input, and it is only checkable if the spec also names the inputs it ranges over. "Scaled amounts are never `Infinity`" is not satisfied by a test whose inputs happen not to overflow — it needs the domain written down ("for amounts in `[0, 1e12]`") or else the guard that makes the absolute claim true. Without a declared domain the AC passes on whatever inputs the author happened to try, and the claim reads as verified when it has only been spot-checked. Watch for this most on numeric contracts, where the author's test values tend to cluster in a comfortable middle and never approach the bounds.
+
 ### Resolved Ambiguities (Binding)
 - **Operator Precision & Boundaries**: [e.g. `>=` vs `>`, exact inclusive/exclusive float bounds e.g. `[-20.0, 0.5]` vs `-20.01` / `0.51`]
 - **Gate Interplay**: [e.g. Replaces/augments temporal gate, rendering window vs focus window separation]
