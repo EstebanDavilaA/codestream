@@ -16,7 +16,7 @@ description: Use after /execute halts on a clean Layer 1 pass. (Roadmap approval
    - Layer 3 regression → route to `/diagnose` as well.
    - Both clear → confirm the critic report actually contains its **Spec Reconciliation** section (rule 23) by reading `CRITIC_REPORT.md` back, then compile `.codestream/archive/VERIFICATION_REPORT.md` (append a new dated section, rule 12) and continue to step 4 in the same turn — do not stop and wait for a separate trigger (rule 15). A Layer 2 PASS with no reconciliation section is not a clean pass: send it back to `audit_critic`, because rule 23 exists so that a clause the phase *disproved* cannot be archived looking like one it validated.
 4. Run `verify_steer` skill to summarize what just completed and write `.codestream/archive/STEERING_LOG.md` (append a new dated section — never overwrite, rule 12).
-5. Present, filling `<phase status>` from `.codestream/ROADMAP.md`'s "Estimated phases" line for the active milestone against `.codestream/STATE.json`'s `active_phase` (e.g. "phase 1 of an estimated 2 — at least one more phase expected", "phase 2 of an estimated 2 — this is likely the closing phase", or "estimate still unclear, plan_spec will scope it at the next /plan" if the line says TBD):
+5. Present, filling `<phase status>` from `.codestream/ROADMAP.md`'s "Estimated phases" line for the active milestone against `.codestream/STATE.json`'s `active_phase` (e.g. "phase 1 of an estimated 2 — at least one more phase expected", "phase 2 of an estimated 2 — this is likely the closing phase", or "estimate still unclear, plan_spec will scope it at the next /plan" if the line carries no justifying axis):
 ```
 [STATE 4: Steering Checkpoint]
 

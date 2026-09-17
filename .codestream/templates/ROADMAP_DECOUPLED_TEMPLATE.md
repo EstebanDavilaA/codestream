@@ -15,6 +15,17 @@
 
 4. **Ordered by risk and learning.** Sequence so the slices that would most change the plan if they went badly come early. Cheap, well-understood work goes late.
 
+5. **Split by capability, never by layer.** When a slice is still too big, cut it along one of these four axes — all of which keep cutting through the stack:
+
+   | Axis | Cut as | When it fits |
+   |---|---|---|
+   | Operation type | create/read · update/delete · list/search | one entity, several operations |
+   | Complexity | basic · advanced | the same operation at increasing depth |
+   | User role | regular user · admin | who is acting changes what is possible |
+   | Technical dependency | core · extension | one capability everything else builds on |
+
+   "The models", then "the logic", then "the UI" is not a split — it is three milestones nobody can use, with every integration risk deferred to the end.
+
 ---
 
 ## Decoupled Milestones
@@ -27,16 +38,20 @@
 ### Milestone N: <short name>
 - User-visible outcome: what a person can actually do after this milestone, in one sentence, in their words.
 - Builds on: which prior milestone's slice this extends (or "none — first slice").
-- Estimated phases: 1  (or "1–2, TBD at /plan" if the slice looks large enough it might split)
+- Estimated phases: 1 — one capability, no unmet dependency  (name the axis; a bare number is a guess)
 - Hardening scope: what gets made production-grade here — types, error handling, tests. Be specific; "polish" is not a scope.
 - Verification threshold: a concrete, testable condition — not "works well."
 ```
 
-**`Estimated phases` is load-bearing, not decorative.** `/steer` reads it at every checkpoint to tell the user whether more phases are still expected in the active milestone ("phase 1 of an estimated 2"). Leaving it blank breaks that readout. It is a first guess, not a promise — `planner` / `plan_spec` sharpen it as scoping clarifies, and milestones drafted as one phase routinely turn out to need two. `/steer` treats it as advisory: Option B (next phase) stays available past the estimate, Option D (complete) stays available before it.
+**`Estimated phases` is load-bearing, not decorative — and it must be argued, not asserted.** `/steer` reads it at every checkpoint to tell the user whether more phases are still expected in the active milestone ("phase 1 of an estimated 2"). Leaving it blank breaks that readout. Write the axis that produced the number, or `1 — single capability, no unmet dependency`; `1` on its own is a claim, not a reason.
 
-**Two self-checks before you write a milestone down** — these are not fields, they are the questions the fields have to survive:
+There is deliberately **no cap on phases per milestone.** A number chosen in advance would be arbitrary — the same feature is one phase in a mature codebase and four in a new one — so this is a judgement to defend, not a limit to pass or fail. It is also a first guess, not a promise: `planner` / `plan_spec` sharpen it as scoping clarifies, and milestones drafted as one phase routinely turn out to need two. `/steer` treats it as advisory — Option B (next phase) stays available past the estimate, Option D (complete) stays available before it.
+
+**Four self-checks before you write a milestone down** — these are not fields, they are the questions the fields have to survive:
 - *Slice depth:* which layers does this cut through — input → logic → storage → display? If the honest answer is one layer, it is not a slice. Redraw the boundary.
 - *Deliberately excluded:* what is hardcoded, stubbed, or deferred in this pass, and to which milestone? A slice with nothing excluded is usually a slice that is too fat to build.
+- *Independent capabilities delivered:* how many, and could each stand alone? More than one is usually more than one phase — or two milestones.
+- *Unmet dependencies:* does finishing this require something not yet built? Each one is a phase boundary, and the count of them is the honest lower bound on `Estimated phases`.
 
 ## Anti-patterns — reject these at review
 
@@ -47,6 +62,7 @@
 | "Implement the UI components" | UI-only. Nothing behind it. | One screen wired to real behavior, even if the data is narrow. |
 | "Wire up persistence and external services" | Integration-only, deferred to the end — the riskiest work lands last. | Push one real write through the real store in Milestone 1; broaden later. |
 | "Testing and polish milestone" | Verification is not a milestone; it is rule 13's Layer 1 inside every `/execute`. | Distribute into the slices whose quality it belongs to. |
+| One milestone bundling several unrelated capabilities | Nothing ships until all of them do — the too-fat slice, arrived at from the other direction. | Cut along one of the four axes above; ship the first capability alone. |
 
 ---
 

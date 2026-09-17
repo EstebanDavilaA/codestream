@@ -233,6 +233,8 @@ Note `Milestone 5.5`. Decimal insertions are normal and healthy: the shell neede
 
 `Estimated phases` is a guess that `/plan` sharpens. In practice a milestone drafted as one phase becomes two often enough that `/steer` reads the field aloud at every checkpoint ("phase 1 of an estimated 2 — at least one more expected"). Milestone 30 ran four phases; Milestone 5.5 ran five. Nothing went wrong — the estimate did its job, which is to tell the user whether to expect another round, not to be right.
 
+Sizing is argued, not counted. There is no phases-per-milestone cap, because a number chosen in advance would be arbitrary — the same feature is one phase in a mature codebase and four in a new one. So the roadmap has to *justify* the number against four named split axes: **operation type** (create/read · update/delete · list/search), **complexity** (basic · advanced), **user role** (regular user · admin), and **technical dependency** (core · extension). Those double as the answer to "this slice is too big — split it how?", which the roadmap previously left open: it said only that you may never split by layer, never what to split by instead. `1` on its own is a claim; `1 — one capability, no unmet dependency` is a reason you can disagree with.
+
 Phases follow the vertical-slice rule too. Splitting M30 into "P1: tokens, P2: primitives, P3: consumers" would have been layering at a smaller scale. What actually shipped:
 
 > **M30_P2 — `ui/` is born with its first real consumer.** Introduces the primitive tree (`FormField`, `Input`, `Select`) *and* immediately re-points the calculator cards onto them, so all ten cards inherit consistent control height, corner radius and focus rings in the same slice.

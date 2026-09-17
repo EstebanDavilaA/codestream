@@ -25,7 +25,7 @@ Write specs that a different agent, with no memory of your reasoning, must be ab
 
 Use `.codestream/templates/FEATURE_SPEC_TEMPLATE.md` as the base structure.
 
-**Keep `.codestream/ROADMAP.md`'s "Estimated phases" line current for this milestone.** If this phase's scoping reveals the milestone needs more (or fewer) phases than the roadmap currently says, update that milestone's "Estimated phases" line in the same edit — this is the only place `/steer` can read from to tell the user whether more phases are coming after the one just completed, so a stale count there defeats the purpose. If a milestone entry predates this field and has none, add it now rather than leaving it blank.
+**Keep `.codestream/ROADMAP.md`'s "Estimated phases" line current for this milestone.** If this phase's scoping reveals the milestone needs more (or fewer) phases than the roadmap currently says, update that milestone's "Estimated phases" line in the same edit — this is the only place `/steer` can read from to tell the user whether more phases are coming after the one just completed, so a stale count there defeats the purpose. If a milestone entry predates this field and has none, add it now rather than leaving it blank — and give the number an axis from `.codestream/templates/ROADMAP_DECOUPLED_TEMPLATE.md`'s split table (or `1 — single capability, no unmet dependency`), because a bare count is the unargued guess the roadmap step exists to replace.
 
 Hand off with: "Review this feature specification. Reply with SPEC_APPROVED to begin execution."
 
