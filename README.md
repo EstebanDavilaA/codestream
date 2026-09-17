@@ -254,6 +254,30 @@ RA-2 — Card-component boundary scope in P2.
 
 RA-2 is doing quiet, important work: it names what is *deliberately not* in this slice and where it went instead. Without that line, the critic in Layer 2 flags an incomplete refactor as a defect, and you spend a `/diagnose` cycle rediscovering a decision you already made.
 
+### Norms and Safeguards: say it, then make it checkable
+
+Two more binding sections exist to close the gap between "we agreed on a standard" and "a different agent can tell whether it was met."
+
+**Norms** name the coding patterns this phase follows, each with a cited precedent. The precedent is the whole point: "follow the existing convention" is unfollowable when the codebase has three conventions. `constructor injection only — precedent: FooService, BarService` gives the executor something to match and the critic something to check. And every norm needs an AC row, because a norm in a binding section with nothing testing it is a claim nobody will ever evaluate.
+
+**Safeguards** apply the same discipline to quality rather than scope — and they have to carry numbers. Compare:
+
+```
+- Performance: search should be reasonably fast.
+```
+
+with:
+
+```
+- Performance: p95 < 200ms for a 1k-row search, measured at the endpoint.
+- Error contract: duplicate email returns 409 with {"code":"EMAIL_TAKEN"}.
+- Must not change: normalizeQuery() output stays byte-identical — the cache key depends on it.
+```
+
+The second set can fail. The first can only be argued about — which means it gets argued about at exactly the worst moment, after the build, when the critic has to decide whether to PASS it.
+
+A Safeguard the spec states but nothing measures is worse than no Safeguard at all, because it looks like coverage. `critic` is instructed to mark such a line PARTIAL rather than assume it holds.
+
 ### Use the lightweight-task exception aggressively
 
 Rule 7 exists because process applied uniformly is process that gets abandoned. A tooltip typo, a threshold constant, a mislabeled column — make the edit, confirm it, move on. No spec, no critic, no steering log.
