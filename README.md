@@ -58,8 +58,8 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 
 ## Using it on a new project
 
-1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one.
-2. Fill in the **Project-specific context** block at the bottom of `CLAUDE.md` and `AGENTS.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
+1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one. Do **not** copy `.codestream-template`, `scripts/`, or `.github/` — those are the template repo's own tooling, and copying the marker would make `/onboard` refuse to start in your project (rule 22).
+2. Fill in the **Project-specific context** block at the bottom of `CLAUDE.md` and `.agents/AGENTS.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
 3. Open the project and run `/onboard`.
 
 `.codestream/STATE.json` ships at `current_state: 0` with an empty history, so `/onboard` will route you into the discovery or prototype track cleanly.
@@ -82,16 +82,51 @@ Unlike the hard rules, these aren't things an agent inside the framework can che
 
 ---
 
+## Maintaining this template
+
+This repository is the framework's own source, not a project built with it. Two guards keep those two roles from blurring.
+
+**Rule 22 — the template refuses to run its own lifecycle.** A `.codestream-template` marker at the repo root makes `/onboard`, and the rule 10 pre-flight that gates every session, abort before asking anything. Every runtime file under `.codestream/` is tracked by git, so running even one feature through `/execute` and `/steer` here would write real project content into `STATE.json`, `BUGS.md`, `FEATURES.md`, `DISCOVERY.md`, `ROADMAP.md`, `documents/**`, and the append-only archive logs — content that then ships inside every future project that copies the template. Because rule 12 makes the archive logs append-only, the mistake is also expensive to unwind afterwards. The marker sits at the repo root rather than inside `.codestream/` precisely so that adoption (which copies `.codestream/` wholesale) does not carry it downstream; it is deliberately absent from the copy list above.
+
+**`scripts/check-framework.py` — the integrity check.** No single-file edit can guarantee the invariants this framework depends on, so the script verifies them mechanically:
+
+| Check | Invariant |
+|---|---|
+| template marker present | rule 22's guard is actually armed |
+| protected paths exist | no framework path has gone missing (rule 8) |
+| rule mirror agrees | all three rule copies carry the same rule numbers and headed-rule titles (rule 13) |
+| headed rule titles match | a renamed rule didn't land in only one copy |
+| skill mirror agrees | every `.claude/skills/*/SKILL.md` has its `.agents/skills/*/SKILL.md` counterpart |
+| subagent/persona mirror agrees | every `.claude/agents/*.md` has its documented Gemini persona, or is the documented exception |
+| STATE.json parses as JSON | valid UTF-8, BOM-free, and a real parse rather than merely a decode (rule 10 point 4 / rule 17) |
+| STATE.json still pristine | rule 22's actual invariant: state 0, empty history, no active spec |
+| archive logs still pristine | the four append-only logs still contain only their stub sentinel |
+| no project residue | no logged bugs/features, no filled-in discovery or roadmap, no `documents/` content |
+| no UTF-8 BOM | rule 14 |
+
+```bash
+python3 scripts/check-framework.py   # exit 0 = clean, exit 1 = blocker
+```
+
+`.github/workflows/framework-integrity.yml` runs the same check on every push and pull request. Neither the script nor the workflow is part of the adoption copy list — downstream projects do not need them.
+
+Framework changes land on a branch in this repo. Anything that changes agent *behaviour* — a new gate, a new spec section, a reworded skill — should be proven in a throwaway downstream project first, then pushed back here with `/extract-template`, so future projects inherit the version that was actually tested rather than the version that merely looked right.
+
+---
+
 ## Layout
 
 ```
 CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of the hard rules
+.codestream-template  marker: this repo is the framework's own source, not a project (rule 22)
+scripts/           check-framework.py — template-repo integrity check (not copied downstream)
+.github/workflows/ framework-integrity.yml — runs the check on every push and PR
 .claude/
   skills/          14 skills: 13 lifecycle commands + /extract-template (framework maintenance)
   agents/          11 subagents, each spawned by exactly one skill above
 .agents/
   AGENTS.md        Antigravity/Gemini directives — the same rules, tool-specific names
-  skills/          23 skills: the same lifecycle, plus one persona skill per Claude subagent
+  skills/          24 skills: the same lifecycle, plus one persona skill per Claude subagent
                     (Gemini has no separate subagent-spawning mechanism — see below)
 .codestream/
   HARD_RULES.md    canonical rules + why each one exists

@@ -1,0 +1,32 @@
+CODESTREAM TEMPLATE REPOSITORY
+==============================
+
+This marker declares that this directory is the framework's own source
+repository — not a project built with the framework.
+
+Effect (HARD_RULES rule 22): /onboard and the rule 10 pre-flight abort here.
+Do not run /discover, /prototype, /plan, /execute, /steer, or /log in this
+directory.
+
+Why: every runtime file under .codestream/ is tracked by git — STATE.json,
+BUGS.md, FEATURES.md, DISCOVERY.md, ROADMAP.md, documents/**, and the
+append-only archive logs. Running the lifecycle here writes real project state
+into those files, which then ships inside every future project that copies this
+template. Rule 12 makes the archive logs append-only, so the smell is expensive
+to remove afterwards.
+
+Why the repo root and not inside .codestream/: adoption copies .codestream/
+wholesale, so a flag inside it would travel downstream and block real projects
+instead of this one. Do NOT add this file to the adoption copy list in
+README.md, and do NOT copy it into a downstream project.
+
+To validate a framework change end to end: work in a throwaway downstream
+project, then push the improvement back with /extract-template.
+
+Overriding (deliberate dogfooding only): state explicitly that you intend to run
+the lifecycle in the template repo. The override is session-scoped. If you find
+this marker inside a downstream project, it was copied in by mistake — delete it
+there; do not weaken the check here.
+
+Helper: scripts/check-framework.py verifies rule 22's invariant (that this
+repo's runtime state is still pristine) along with the mirror checks.

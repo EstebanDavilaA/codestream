@@ -5,6 +5,20 @@ description: Use when starting work in a new or unfamiliar workspace. Routes to 
 
 # Onboarding: Route to the Correct Entry Point
 
+## Pre-check: template-repo guard (rule 22)
+
+Before asking anything, check for a `.codestream-template` file at the repo root.
+
+If it exists, **stop immediately**. This is the framework's own source repo, not a project built with it. Running the lifecycle here writes real project runtime state into `.codestream/` files that are tracked by git, and those files then ship inside every future project that copies the template.
+
+Say so plainly, and offer only the two valid next steps:
+1. Edit framework files here directly — no lifecycle, no `/discover`, no `/plan`.
+2. Validate the change in a throwaway downstream project, then push it back with `/extract-template`.
+
+Proceed anyway only if the user explicitly confirms they intend to dogfood the framework in this repo; treat that as session-scoped and do not carry it forward.
+
+## Routing
+
 Ask (once, single message):
 > "How should we start this workspace?
 > 1. **Raw idea, want something running fast** → `/prototype`

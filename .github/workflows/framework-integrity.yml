@@ -1,0 +1,31 @@
+name: Framework integrity
+
+# Guards the invariants no single-file edit can guarantee:
+#   * the three rule mirrors agree (rule 13 — HARD_RULES.md is canonical)
+#   * every Claude skill / subagent has its Gemini counterpart
+#   * STATE.json parses as real JSON and the template's own runtime state is
+#     still pristine (rule 22 — the template must not accumulate project state)
+#   * no framework file carries a UTF-8 BOM (rule 14)
+#
+# Template-repo tooling. Downstream projects that adopt CODESTREAM do not need
+# this workflow.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Rule mirrors, state integrity, rule 22 guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run framework integrity check
+        run: python3 scripts/check-framework.py

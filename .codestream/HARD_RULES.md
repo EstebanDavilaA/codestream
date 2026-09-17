@@ -29,6 +29,8 @@ Read this section before weakening any rule below. Each one is cheaper to follow
 
 ### 10. Cross-tool pre-flight integrity check — mandatory, hard-blocking
 
+**Run rule 22's template-repo guard before this check.** If it trips, stop here — the four steps below assume this is a real project.
+
 Before taking **any** action in a project where `.codestream/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order:
 
 1. **Read `.codestream/STATE.json` in full.**
@@ -96,3 +98,13 @@ When `/steer` (or the verifier subagent/persona) archives a spec into `.codestre
 When `/steer` closes out a milestone (not a phase — phases within an open milestone stay inline), move every `state_history` entry belonging to milestones older than the current milestone and the one immediately before it out of `.codestream/STATE.json` and append them to `.codestream/archive/STATE_HISTORY.md`, in the same append-only style as rule 12's other archive files (read the existing archive first, append a new dated section, never truncate). `STATE.json` itself keeps only the current milestone's and the immediately-prior milestone's entries inline. This is a `STATE.json` edit like any other — it goes through rule 17's read-parse-mutate-serialize-reparse discipline, not a text splice.
 
 Rule 10's pre-flight check is unaffected: it only ever needed the *most recent* entry and the top-level `current_state`/`active_milestone`/`active_phase` fields, all of which stay inline. Rule 19's critic-report citation check is unaffected too — citations are verified against `CRITIC_REPORT.md`, not `state_history`.
+
+### 22. The template repo refuses to run its own lifecycle
+
+A `.codestream-template` marker file at the repo root declares "this directory is the framework's own source, not a project built with it." `/onboard` — and the rule 10 pre-flight that gates every session — must abort when that marker is present, before any routing question is asked. Run this check **first**, ahead of rule 10's four integrity steps: it is a single-path existence check, and it gates everything else.
+
+The failure it prevents is a one-command trap, not slow drift. Every runtime file under `.codestream/` is tracked by git — `STATE.json`, `BUGS.md`, `FEATURES.md`, `DISCOVERY.md`, `ROADMAP.md`, `documents/**`, and the append-only archive logs. Run a single feature through `/execute` and `/steer` in the template repo and those files accumulate real project content, which then ships inside every future project that copies the template. Rule 12 makes the archive logs append-only, so the mistake is also expensive to unwind later — you would be manually undoing your own rule.
+
+The marker lives at the repo root rather than inside `.codestream/` deliberately: adoption copies `.codestream/` wholesale, so a flag inside it would travel downstream and block real projects instead of this one. The marker is **not** part of `README.md`'s adoption copy list, and must never be added to it.
+
+Overriding is possible but must be deliberate and session-scoped: the user states explicitly that they intend to dogfood the framework in the template repo. If a downstream project ever shows this marker, it was copied in by mistake — delete the marker there; do not weaken the check here.
