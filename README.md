@@ -202,6 +202,8 @@ Claude Code and Antigravity/Gemini run the identical `.codestream/`-gated lifecy
 
 Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
+**A third assistant is not excluded.** The `.claude/` + `.agents/` pairing above is the framework's current shape, not a limit on how many assistants may read one `.codestream/`. Rule 11's `agent` list is open for exactly this reason, and rule 10's pre-flight test is worded as "an assistant other than the one you are" rather than naming a specific one, so it keeps working as the list grows. When a new assistant first operates on a project's state, record it truthfully and add its value to rule 11 — do not write `claude-code` for a session that was not Claude Code, and do not treat an unfamiliar value as corruption. The same warning from `/extract-template` applies here: an inaccurate audit trail is worse than a short one.
+
 ---
 
 ## Worked examples
