@@ -1,6 +1,8 @@
 # CODESTREAM Hard Rules — Canonical, Tool-Agnostic
 
-This file is the single source of truth for the framework's non-negotiable rules. `CLAUDE.md` (Claude Code) and `AGENTS.md` (Antigravity/Gemini) each embed a full copy of these rules — verbatim except for tool-specific names (e.g. "the `critic` subagent" vs. "the `audit_critic` skill") — because both files must be self-contained and auto-loaded by their respective tool; a pointer alone is not reliably read. **When these rules change, edit this file first, then copy the change into both `CLAUDE.md` and `AGENTS.md` in the same sitting.** If the three ever disagree, this file wins, and the disagreement itself is a bug to fix immediately, not a judgment call to make in the moment.
+This file is the single source of truth for the framework's non-negotiable rules. Every tool-specific directive file embeds a full copy of these rules — verbatim except for tool-specific names (e.g. "the `critic` subagent" vs. "the `audit_critic` skill") — because each directive must be self-contained and auto-loaded by its own tool; a pointer alone is not reliably read. The directive files currently shipped are `CLAUDE.md`, `.agents/AGENTS.md`, and `.github/copilot-instructions.md`. **When these rules change, edit this file first, then mirror the change into every directive in the same sitting.** If any copy disagrees, this file wins, and the disagreement itself is a bug to fix immediately, not a judgment call to make in the moment. `scripts/check-framework.py` verifies that all directive copies agree on rule numbers and headed-rule titles, so a drift that misses a copy fails CI rather than surfacing in a project.
+
+**Adding a new tool does not change these rules.** An agent participates by declaring its own agent id (rule 11) and reading one shared `.codestream/` — there is nothing to add to the rule text itself.
 
 ## Why these rules exist
 
@@ -22,7 +24,7 @@ Read this section before weakening any rule below. Each one is cheaper to follow
 3. Neither `/execute` nor `/steer` trusts the executor's own tests as proof of correctness. `/execute` runs Layer 1 (executor's tests, plus typecheck/build/lint — rule 13) and then halts; `/steer` runs Layer 2 (an independent critic audit against the approved spec) and Layer 3 (a regression pass across all prior milestones) before presenting the steering checkpoint. See rule 15 for why Layer 2/3 moved out of an auto-chain and into `/steer`.
 4. Any verification failure routes through `/diagnose` before any fix is attempted — implementation bug, spec error, and misunderstood intent are fixed at different layers (`/execute`, `/plan`, `/discover` respectively), and patching at the wrong layer tends to reproduce the same class of bug later.
 5. `/steer` is a mandatory halt. Never auto-advance *past* it, even when the next step seems obvious — but see rule 15: the halt happens *at* the checkpoint, not before reaching it.
-6. **Strict alternation rule**: `.codestream/` state is shared between Claude Code and Antigravity (Gemini). Only one assistant operates on the active phase at a time; check `.codestream/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
+6. **Strict alternation rule**: `.codestream/` state is shared between assistants. Only one operates on the active phase at a time; check `.codestream/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
 7. **Lightweight-task exception**: a small, self-contained edit (numeric/config tweaks, single-file fixes, doc/log corrections) that introduces no new user-visible capability skips the spec/execute/verify/steer ceremony entirely — no spec, no critic, no steering log update. Just make the edit and confirm it with the user. If a "small" change turns out to touch multiple files, cross a milestone boundary, or introduce new behavior, stop and route it back into the normal lifecycle instead. **Lean on this exception readily** — don't default to full ceremony for a genuinely small change just because heavier process is available.
 8. Framework paths are protected (`CLAUDE.md`, `.claude/`, `AGENTS.md`, `.agents/`, `.codestream/`) — never deleted, moved, or mass-overwritten by any skill or scaffolding step under any circumstance. If these paths ever go missing, stop and tell the user immediately rather than proceeding. **Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. On 2026-09-17 the project was renamed from SLIPSTREAM to CODESTREAM, renaming `.slipstream/` to `.codestream/` via explicit user instruction, immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
 9. Milestones must be **vertical slices** (restated from rule 2 for emphasis, since horizontal-layer proposals are the single most common roadmap mistake): every milestone produces something a user can run and use, never a types-only/API-only/UI-only slice.
@@ -34,7 +36,7 @@ Read this section before weakening any rule below. Each one is cheaper to follow
 Before taking **any** action in a project where `.codestream/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order:
 
 1. **Read `.codestream/STATE.json` in full.**
-2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and its `state` value. If it names an assistant *other than the one you are* and does not look like a natural halt point (`state: 4` / a `/steer` checkpoint, or an explicit "AWAITING SPEC_APPROVED" / "AWAITING re-SPEC_APPROVED" halt) — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
+2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and its `state` value. If it names an agent **other than your own** and does not look like a natural halt point (`state: 4` / a `/steer` checkpoint, or an explicit "AWAITING SPEC_APPROVED" / "AWAITING re-SPEC_APPROVED" halt) — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
 3. **Verify `.codestream/active/` contains at most one spec file, and that it matches `artifacts.active_spec`.** If more than one spec file exists, or the pointer doesn't match what's on disk, **stop and flag the discrepancy** rather than silently picking one or archiving the "old" one yourself.
 4. **Verify that spec file, and `STATE.json`, are valid UTF-8 text with no encoding corruption, AND that `STATE.json` parses as valid JSON** — an actual `JSON.parse` / `json.load`, not merely a successful text decode. These are independent properties: a file can be perfectly valid UTF-8 while still being structurally broken JSON, and that exact combination has shipped undetected before. Either failure is a cross-tool corruption signal and stops you.
 
@@ -42,7 +44,11 @@ This check is **hard-blocking**: if any of the four steps fails, do not proceed 
 
 ### 11. State provenance
 
-Every `state_history` entry appended to `.codestream/STATE.json` must include an `"agent"` field naming the assistant that made it. Known values: `"claude-code"`, `"antigravity-gemini"`, `"github-copilot"` — an **open** list, not a closed enum. A third assistant operating on the state is a real situation, not a rule violation: when one first appears, add its value here and record it truthfully rather than writing a name that isn't the one in use. This is what rule 10's check reads, which is why rule 10's test is worded as "an assistant other than the one you are" rather than naming a specific one. An entry without this field is itself a rule violation — add it retroactively if you find one missing (don't rewrite the entry's other content, just add the field).
+Every `state_history` entry appended to `.codestream/STATE.json` must include an `"agent"` field holding **your own agent id**: a short, stable, lowercase slug you use for yourself, declared in the directive file your tool auto-loads (for the shipped directives: `claude-code`, `antigravity-gemini`, `github-copilot` — examples, not a list).
+
+The framework deliberately does **not** enumerate agents. The field is a self-declared alias, so a tool the framework has never heard of participates simply by writing its own id — no rule change, no registry, no coordination. Two obligations follow from that. Use **one** id consistently, so a reader can attribute history. And never write an id that is not the one you are: a false id is worse than a vague one, because rule 10's pre-flight trusts this field to decide whether another session may still be mid-task, and an entry claiming to be someone it is not silently disables that check.
+
+An entry without this field is itself a rule violation — add it retroactively if you find one missing (don't rewrite the entry's other content, just add the field).
 
 ### 12. Archive files are append-only
 
@@ -70,12 +76,13 @@ Every file this framework writes or edits — feature specs, `STATE.json`, archi
 
 ### 16. Suggested division of labor (soft preference, not enforced)
 
-A documented default, not a restriction — either tool can do any step, and rules 1–15 apply identically regardless of which one is doing the work:
-- **Antigravity/Gemini** defaults to `/steer`, state-reading and roadmap/bug triage (`/log`), and lightweight-task-exception-scale repairs (rule 7) — faster turnaround suits this class of work.
-- **Claude Code** defaults to `/plan`, `/execute`, and `/steer`'s critic layer for larger multi-file work.
-- This is a default lean for picking which tool to open for a given task, not a hard boundary — and it does not relax rules 1–15 for whichever tool is used.
+A documented default, not a restriction — any agent can run any step, and rules 1–15 apply identically regardless of who is doing the work.
 
-Adjust this split to match the tools actually in use on the project; delete it entirely if only one assistant is in play.
+Where more than one agent is available, split by **cost profile** rather than by tool name:
+- Give the cheap, fast agent `/steer`, state-reading and roadmap/bug triage (`/log`), and lightweight-task-exception repairs (rule 7). Fast turnaround suits this class of work.
+- Give the strongest available model `/plan`, `/execute`, and `/steer`'s critic layer for larger multi-file work. The critic especially belongs on the strongest model the project can afford — its entire job is catching what a weaker pass would miss, so cheaping out on it defeats rule 3's premise.
+
+This is a default lean for deciding which agent to open, not a hard boundary, and it never relaxes rules 1–15. Name the agents filling each role per project, or delete this rule entirely if only one agent is in play.
 
 ### 17. `STATE.json` is edited structurally, never by raw text paste
 

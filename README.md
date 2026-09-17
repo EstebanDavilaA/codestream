@@ -1,10 +1,10 @@
 # CODESTREAM
 
-A spec-gated, vertical-slice development framework for Claude Code and Antigravity/Gemini.
+A spec-gated, vertical-slice development framework for AI coding assistants — any of them.
 
 Named for the obvious reason: you go faster because the drag is gone. The drag, in agentic development, is rework — and rework comes from exactly two places. You built the wrong thing because nobody wrote down what "right" meant. Or you believed a broken build passed because the only thing that checked it was the same agent that wrote it. CODESTREAM is the set of gates that make both of those expensive to do by accident.
 
-It is stack-agnostic. Nothing in the framework assumes a language, runtime, or package manager.
+It is stack-agnostic and tool-agnostic. Nothing in the framework assumes a language, runtime, package manager, or assistant.
 
 ---
 
@@ -16,7 +16,7 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 
 **Three-layer verification, with the layers separated on purpose.** Layer 1 (tests + typecheck + build + lint, all four, all by exit code) runs inside `/execute`, which then halts. Layer 2 (an independent critic auditing the build against the approved spec) and Layer 3 (cross-milestone regression) run inside `/steer`, in a fresh context. The separation is deliberate: chaining all three off the end of a build compounds an already-large transcript with two more agent-heavy steps before any human has looked at the result.
 
-**A shared state directory both assistants read.** `.codestream/` holds the roadmap, the active spec, the append-only audit logs, and `STATE.json`. Every state transition is logged with which assistant made it, and a hard-blocking pre-flight check catches the cross-tool desync failures — stale state, duplicate active specs, corrupted JSON — before they compound.
+**A shared state directory every assistant reads.** `.codestream/` holds the roadmap, the active spec, the append-only audit logs, and `STATE.json`. Every state transition is logged with the agent id that made it, and a hard-blocking pre-flight check catches the cross-tool desync failures — stale state, duplicate active specs, corrupted JSON — before they compound.
 
 **Failures route by cause, not by symptom.** `/diagnose` sits between any verification failure and any fix, because an implementation bug, a spec error, and a misunderstood intent are repaired at three different layers. Patching at the wrong one reproduces the same class of bug a milestone later.
 
@@ -58,8 +58,8 @@ It is stack-agnostic. Nothing in the framework assumes a language, runtime, or p
 
 ## Using it on a new project
 
-1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one. Do **not** copy `.codestream-template`, `scripts/`, or `.github/` — those are the template repo's own tooling, and copying the marker would make `/onboard` refuse to start in your project (rule 22).
-2. Fill in the **Project-specific context** block at the bottom of `CLAUDE.md` and `.agents/AGENTS.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
+1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, `.github/copilot-instructions.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one. Do **not** copy `.codestream-template`, `scripts/`, or `.github/workflows/` — those are the template repo's own tooling, and copying the marker would make `/onboard` refuse to start in your project (rule 22).
+2. Fill in the **Project-specific context** block at the bottom of every directive you kept — `CLAUDE.md`, `.agents/AGENTS.md`, `.github/copilot-instructions.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
 3. Open the project and run `/onboard`.
 
 `.codestream/STATE.json` ships at `current_state: 0` with an empty history, so `/onboard` will route you into the discovery or prototype track cleanly.
@@ -94,8 +94,9 @@ This repository is the framework's own source, not a project built with it. Two 
 |---|---|
 | template marker present | rule 22's guard is actually armed |
 | protected paths exist | no framework path has gone missing (rule 8) |
-| rule mirror agrees | all three rule copies carry the same rule numbers and headed-rule titles (rule 13) |
+| rule mirror agrees | all four directive copies carry the same rule numbers and headed-rule titles (rule 13) |
 | headed rule titles match | a renamed rule didn't land in only one copy |
+| directive agent ids distinct | each directive declares exactly one agent id, and no two claim the same (rule 11) |
 | skill mirror agrees | every `.claude/skills/*/SKILL.md` has its `.agents/skills/*/SKILL.md` counterpart |
 | subagent/persona mirror agrees | every `.claude/agents/*.md` has its documented Gemini persona, or is the documented exception |
 | STATE.json parses as JSON | valid UTF-8, BOM-free, and a real parse rather than merely a decode (rule 10 point 4 / rule 17) |
@@ -108,7 +109,7 @@ This repository is the framework's own source, not a project built with it. Two 
 python3 scripts/check-framework.py   # exit 0 = clean, exit 1 = blocker
 ```
 
-`.github/workflows/framework-integrity.yml` runs the same check on every push and pull request. Neither the script nor the workflow is part of the adoption copy list — downstream projects do not need them.
+`.github/workflows/framework-integrity.yml` runs the same check on every push and pull request. Neither `scripts/` nor `.github/workflows/` is part of the adoption copy list — downstream projects do not need them. Note that `.github/copilot-instructions.md` **is** adopted; only the workflow directory is not.
 
 Framework changes land on a branch in this repo. Anything that changes agent *behaviour* — a new gate, a new spec section, a reworded skill — should be proven in a throwaway downstream project first, then pushed back here with `/extract-template`, so future projects inherit the version that was actually tested rather than the version that merely looked right.
 
@@ -118,6 +119,9 @@ Framework changes land on a branch in this repo. Anything that changes agent *be
 
 ```
 CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of the hard rules
+.agents/AGENTS.md  Antigravity/Gemini directives — the same rules, tool-specific names
+.github/copilot-instructions.md  VS Code Copilot directives — likewise
+                   (every directive declares its own agent id; the rules never enumerate tools)
 .codestream-template  marker: this repo is the framework's own source, not a project (rule 22)
 scripts/           check-framework.py — template-repo integrity check (not copied downstream)
 .github/workflows/ framework-integrity.yml — runs the check on every push and PR
@@ -125,9 +129,9 @@ scripts/           check-framework.py — template-repo integrity check (not cop
   skills/          14 skills: 13 lifecycle commands + /extract-template (framework maintenance)
   agents/          11 subagents, each spawned by exactly one skill above
 .agents/
-  AGENTS.md        Antigravity/Gemini directives — the same rules, tool-specific names
-  skills/          24 skills: the same lifecycle, plus one persona skill per Claude subagent
-                    (Gemini has no separate subagent-spawning mechanism — see below)
+  skills/          24 skills — THE NEUTRAL LAYER. Read by Gemini, by VS Code Copilot,
+                    and by Codex alike (the cross-vendor agentskills.io convention):
+                    the same lifecycle, plus one persona skill per Claude subagent
 .codestream/
   HARD_RULES.md    canonical rules + why each one exists
   STATE.json       live state, provenance-tagged history
@@ -182,9 +186,9 @@ scripts/           check-framework.py — template-repo integrity check (not cop
 
 The model choice per subagent is deliberate, not a default left unset: `critic`, `planner`, `roadmapper`, and `codebase-mapper` get the strongest model because their entire job is catching what a weaker pass would miss (rule 3's premise — the agent auditing correctness must not be the weak link). `verifier` and `prototyper` get the cheapest model because their jobs are compilation/speed, not judgment. Resist the temptation to downgrade `critic` for cost savings — that's the one subagent where doing so defeats the reason it exists.
 
-### Two implementations, one lifecycle
+### One lifecycle, several agent implementations
 
-Claude Code and Antigravity/Gemini run the identical `.codestream/`-gated lifecycle, but the tools model "the substantive work behind a skill" differently. Claude Code has a real subagent-spawning mechanism (the `Agent`/Task tool), so each orchestrating skill above hands off to a separate subagent file under `.claude/agents/`. Antigravity/Gemini has no equivalent spawning primitive, so the framework represents the same split as a **second skill file** — a "technical process instructions" persona the orchestrating skill invokes as a step, not a tool call. The pairing is 1:1:
+The `.codestream/`-gated lifecycle is identical regardless of who runs it. What differs is how each tool models "the substantive work behind a skill". Claude Code has a real subagent-spawning mechanism (the `Agent`/Task tool), so each orchestrating skill hands off to a separate subagent file under `.claude/agents/`. A tool without a spawning primitive represents the same split as a **second skill file** — a "technical process instructions" persona the orchestrating skill invokes as a step, not a tool call. The pairing is 1:1:
 
 | Claude subagent (`.claude/agents/`) | Gemini persona skill (`.agents/skills/`) |
 |---|---|
@@ -202,7 +206,7 @@ Claude Code and Antigravity/Gemini run the identical `.codestream/`-gated lifecy
 
 Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
-**A third assistant is not excluded.** The `.claude/` + `.agents/` pairing above is the framework's current shape, not a limit on how many assistants may read one `.codestream/`. Rule 11's `agent` list is open for exactly this reason, and rule 10's pre-flight test is worded as "an assistant other than the one you are" rather than naming a specific one, so it keeps working as the list grows. When a new assistant first operates on a project's state, record it truthfully and add its value to rule 11 — do not write `claude-code` for a session that was not Claude Code, and do not treat an unfamiliar value as corruption. The same warning from `/extract-template` applies here: an inaccurate audit trail is worse than a short one.
+**Adding a tool changes no rule.** An agent participates by reading one shared `.codestream/`, declaring its own agent id in the directive file its host auto-loads, and using skills from `.agents/skills/` — the neutral layer. Nothing in the rule text enumerates agents: rule 11's `agent` field is a self-declared alias, and rule 10's pre-flight compares it against **your own** id rather than against a list. So a fourth directive costs two things — the file itself, and one entry in `DIRECTIVES` in `scripts/check-framework.py` so the mirror contract covers it.
 
 ---
 
@@ -313,9 +317,9 @@ The rules in `HARD_RULES.md` are not hypothetical. Over that project's life, the
 
 Every one of these was cheap to prevent and expensive to find. That asymmetry is the whole argument for the framework.
 
-### A note on the two-assistant split
+### A note on running several assistants
 
-If you run both Claude Code and Antigravity/Gemini against one `.codestream/`, rule 6's strict alternation is the rule that will bite you first, and the pre-flight check in rule 10 is what catches it. The soft division of labor in rule 16 — Gemini for `/steer`, triage and small repairs; Claude Code for `/plan` and `/execute` — is a starting default, not a law. If you only use one assistant, delete rule 16 and simplify rule 6 rather than leaving instructions that describe a setup you do not have.
+If you run more than one assistant against one `.codestream/`, rule 6's strict alternation is the rule that will bite you first, and rule 10's pre-flight is what catches it. The soft division of labor in rule 16 is a starting default, not a law — split by **cost profile**, not by tool name. If you only use one assistant, delete rule 16 and simplify rule 6 rather than leaving instructions that describe a setup you do not have.
 
 ---
 

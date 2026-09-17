@@ -30,12 +30,20 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 CANONICAL = Path(".codestream/HARD_RULES.md")
-MIRRORS = [Path("CLAUDE.md"), Path(".agents/AGENTS.md")]
-RULE_FILES = [CANONICAL, *MIRRORS]
+# Every directive file that embeds a full copy of the rules. Adding a tool to the
+# framework means adding its directive here and declaring its own agent id in it —
+# the rules themselves never enumerate agents (rule 11).
+DIRECTIVES = [
+    Path("CLAUDE.md"),
+    Path(".agents/AGENTS.md"),
+    Path(".github/copilot-instructions.md"),
+]
+RULE_FILES = [CANONICAL, *DIRECTIVES]
 
 PROTECTED = [
     "CLAUDE.md",
     ".agents/AGENTS.md",
+    ".github/copilot-instructions.md",
     ".claude",
     ".agents",
     ".codestream",
@@ -97,6 +105,52 @@ def check_protected_paths() -> None:
         record("PASS", "protected paths exist", f"{len(PROTECTED)} paths")
 
 
+# ------------------------------------------------- 2b. agent ids (rule 11)
+AGENT_ID = re.compile(r"Your agent id is `([a-z0-9][a-z0-9-]*)`")
+
+
+def check_agent_ids() -> None:
+    """Every directive declares its own agent id, and no two declare the same one.
+
+    Rule 11 deliberately does not enumerate agents — the id is a self-declared
+    alias. So what can be checked is not "is this a known tool" but "does each
+    directive claim exactly one identity, and are they distinct". Two directives
+    claiming the same id would make rule 10's pre-flight unable to tell them
+    apart, which is the failure the field exists to prevent.
+    """
+    ids: dict[str, str] = {}
+    problems: list[str] = []
+
+    for directive in DIRECTIVES:
+        path = REPO / directive
+        if not path.is_file():
+            problems.append(f"{directive} missing")
+            continue
+        found = AGENT_ID.findall(path.read_text(encoding="utf-8"))
+        if len(found) != 1:
+            problems.append(
+                f"{directive} declares {len(found)} agent id(s), expected exactly 1"
+            )
+            continue
+        ids[str(directive)] = found[0]
+
+    for directive, agent_id in ids.items():
+        for other, other_id in ids.items():
+            if other != directive and other_id == agent_id:
+                problems.append(
+                    f"{directive} and {other} both claim agent id '{agent_id}'"
+                )
+
+    if problems:
+        record("FAIL", "directive agent ids distinct", "; ".join(sorted(set(problems))))
+    else:
+        record(
+            "PASS",
+            "directive agent ids distinct",
+            ", ".join(f"{p}={i}" for p, i in ids.items()),
+        )
+
+
 # ------------------------------------------------------------ 2. rule mirror
 RULE_HEAD = re.compile(r"^#{2,3}\s+(\d+)\.\s*(.*)$")
 RULE_ITEM = re.compile(r"^(\d+)\.\s+(.*)$")
@@ -147,7 +201,7 @@ def check_rule_mirror() -> None:
     canonical_numbers = set(parsed[CANONICAL][1])
 
     problems: list[str] = []
-    for mirror in MIRRORS:
+    for mirror in DIRECTIVES:
         numbers = set(parsed[mirror][1])
         missing = sorted(canonical_numbers - numbers)
         extra = sorted(numbers - canonical_numbers)
@@ -402,6 +456,7 @@ def main() -> int:
 
     check_template_marker()
     check_protected_paths()
+    check_agent_ids()
     check_rule_mirror()
     check_skill_mirror()
     check_persona_mirror()
