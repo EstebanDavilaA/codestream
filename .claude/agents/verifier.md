@@ -27,8 +27,14 @@ You are the Verifier (steering side). By the time you're spawned, `/verify`'s th
 Write this after the user selects an option, appending their choice and any notes — this becomes the audit trail for why the roadmap evolved the way it did.
 
 ## Archive step (run after writing the steering log, only when the milestone/phase is genuinely closing — i.e. Option D, or Option B advancing to a new phase)
-1. Move the current `.codestream/active/<milestone>_<phase>_feature_spec.md` to `.codestream/archive/specs/` unchanged (same filename — it's already named for its milestone/phase, so no rename is needed).
-2. Move the contents of `.codestream/active/manual_verification/` to `.codestream/archive/manual_verification/<milestone>_<phase>/` (create if absent).
-3. `.codestream/STATE.json`'s `artifacts.active_spec` will be stale until the next `/plan` writes the new phase's spec and updates it — do not leave `.codestream/active/` holding a spec file that no longer matches the pointer for longer than that gap.
+
+**Print the plan before moving anything.** State the exact source and destination for each move below, and say explicitly that the source copy is deleted afterward (rule 20). An irreversible move gets printed before it happens rather than narrated after — a "move" that silently leaves the source behind is how a stale duplicate ends up in `active/`, and the printed plan is what makes that visible in the same turn.
+
+1. Confirm the closing spec's **Spec Reconciliation** (rule 23) is present in `.codestream/archive/CRITIC_REPORT.md` for this phase. Rule 23 requires it *before* this archive step, not after — if the section is missing, do not move the spec; send it back to the `critic` subagent first.
+2. Copy the current `.codestream/active/<milestone>_<phase>_feature_spec.md` to `.codestream/archive/specs/` unchanged (same filename — it's already named for its milestone/phase, so no rename is needed), **then delete the original from `.codestream/active/` as a separate, explicit step** — a "move" that silently leaves the source behind is exactly how a stale duplicate ends up sitting in `active/` for the next session to trip over. Re-list `.codestream/active/` afterward and confirm the spec file is actually gone before continuing (`.codestream/HARD_RULES.md` rule 20) — do not assume the copy step also deleted it.
+3. Move the contents of `.codestream/active/manual_verification/` to `.codestream/archive/manual_verification/<milestone>_<phase>/` (create if absent).
+4. **Item Closeout**: For any bugs (`BUG-xxx` in `.codestream/BUGS.md`) or feature requests (`FEAT-xxx` in `.codestream/FEATURES.md`) addressed by the closing phase/milestone spec, update their status to `CLOSED` (`VERIFIED_RESOLVED` for bugs / `VERIFIED_COMPLETED` for features).
+5. `.codestream/STATE.json`'s `artifacts.active_spec` will be stale until the next `/plan` writes the new phase's spec and updates it — do not leave `.codestream/active/` holding a spec file that no longer matches the pointer for longer than that gap.
+6. Append this steering decision to `.codestream/STATE.json`'s `state_history` now, as its own entry with the `agent` field set — not deferred to a later summary (rule 18). Edit `STATE.json` structurally (read, parse, mutate, serialize) and re-parse the file after writing to confirm it's still valid JSON before ending the turn (rule 17).
 
 Do not archive on Option A (Refine) — the spec is still active and will be revised in place, not replaced.

@@ -14,7 +14,7 @@ It is stack-agnostic and tool-agnostic. Nothing in the framework assumes a langu
 
 **Vertical-slice milestones.** Every milestone ships something a user can run. Types-only, backend-only, and UI-only slices are rejected by rule, by the roadmapper agent, and by an anti-pattern table in the roadmap template — because horizontal layering is the most common way a plausible-looking roadmap produces nothing demonstrable for weeks.
 
-**Three-layer verification, with the layers separated on purpose.** Layer 1 (tests + typecheck + build + lint, all four, all by exit code) runs inside `/execute`, which then halts. Layer 2 (an independent critic auditing the build against the approved spec) and Layer 3 (cross-milestone regression) run inside `/steer`, in a fresh context. The separation is deliberate: chaining all three off the end of a build compounds an already-large transcript with two more agent-heavy steps before any human has looked at the result.
+**Three-layer verification, with the layers separated on purpose.** Layer 1 (tests + typecheck + build + lint, all four, all by exit code) runs inside `/execute`, which then halts. Layer 2 (an independent critic auditing the build against the approved spec) and Layer 3 (cross-milestone regression) run inside `/steer`, in a fresh context. The separation is deliberate: chaining all three off the end of a build compounds an already-large transcript with two more agent-heavy steps before any human has looked at the result. Layer 2's report also carries a **spec reconciliation** (rule 23) — every binding clause labelled `VALIDATED`, `CORRECTED`, `DEFECTIVE`, `UNVERIFIABLE`, `SCOPE CREEP`, or `SILENT DROP` — and `/steer` will not file the spec away without it. **Rule 24** is the same discipline applied to reading: verify each artifact from its bytes on disk, in full, at the moment of verification. Rule 10 already did this for `STATE.json` — re-read it and actually parse it, never trust an earlier read — and rule 24 says do it for everything, because two consecutive dogfood runs were nearly invalidated by a file that was correct when written and wrong when read.
 
 **A shared state directory every assistant reads.** `.codestream/` holds the roadmap, the active spec, the append-only audit logs, and `STATE.json`. Every state transition is logged with the agent id that made it, and a hard-blocking pre-flight check catches the cross-tool desync failures — stale state, duplicate active specs, corrupted JSON — before they compound.
 
@@ -94,7 +94,7 @@ This repository is the framework's own source, not a project built with it. Two 
 |---|---|
 | template marker present | rule 22's guard is actually armed |
 | protected paths exist | no framework path has gone missing (rule 8) |
-| rule mirror agrees | all four directive copies carry the same rule numbers and headed-rule titles (rule 13) |
+| rule mirror agrees | all four directive copies carry the same rule numbers and headed-rule titles (the canonical-source note in `HARD_RULES.md`) |
 | headed rule titles match | a renamed rule didn't land in only one copy |
 | directive agent ids distinct | each directive declares exactly one agent id, and no two claim the same (rule 11) |
 | skill mirror agrees | every `.claude/skills/*/SKILL.md` has its `.agents/skills/*/SKILL.md` counterpart |
