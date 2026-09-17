@@ -14,6 +14,7 @@ Every rule below was written after a specific failure cost real time. They are n
 - **Retroactive audit trails.** Entire build → audit → steer → plan → execute cycles run with zero `state_history` entries until one summary written at the end, plus a verification report citing a critic entry that was never actually written. An entry written after the fact is narrative, not evidence. → Rules 18, 19.
 - **Unbounded context cost.** `state_history` grown to hundreds of entries and most of a context window, so every pre-flight check paid to load the project's entire lifetime just to read the last entry. → Rule 21.
 - **Runaway auto-chaining.** Build auto-chaining into audit and regression in one continuous context, compounding an already-large transcript with two more agent-heavy steps before any human saw the result. → Rule 15.
+- **Spec drift at archive time.** Layer 2 audits the build against the spec, but nothing ever audited the spec against what the build *proved* — and rule 20 then filed it away byte-identical. A clause the phase had disproved ended up archived indistinguishably from one it had validated, to be read as precedent by the next project. In the same family: a file correct when written but wrong when read, which no check in `.codestream/` can see, because that state does not know what the source tree is supposed to look like. → Rules 23, 24.
 
 Read this section before weakening any rule below. Each one is cheaper to follow than the failure it prevents.
 
@@ -26,7 +27,7 @@ Read this section before weakening any rule below. Each one is cheaper to follow
 5. `/steer` is a mandatory halt. Never auto-advance *past* it, even when the next step seems obvious — but see rule 15: the halt happens *at* the checkpoint, not before reaching it.
 6. **Strict alternation rule**: `.codestream/` state is shared between assistants. Only one operates on the active phase at a time; check `.codestream/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
 7. **Lightweight-task exception**: a small, self-contained edit (numeric/config tweaks, single-file fixes, doc/log corrections) that introduces no new user-visible capability skips the spec/execute/verify/steer ceremony entirely — no spec, no critic, no steering log update. Just make the edit and confirm it with the user. If a "small" change turns out to touch multiple files, cross a milestone boundary, or introduce new behavior, stop and route it back into the normal lifecycle instead. **Lean on this exception readily** — don't default to full ceremony for a genuinely small change just because heavier process is available.
-8. Framework paths are protected (`CLAUDE.md`, `.claude/`, `AGENTS.md`, `.agents/`, `.codestream/`) — never deleted, moved, or mass-overwritten by any skill or scaffolding step under any circumstance. If these paths ever go missing, stop and tell the user immediately rather than proceeding. **Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. On 2026-09-17 the project was renamed from SLIPSTREAM to CODESTREAM, renaming `.slipstream/` to `.codestream/` via explicit user instruction, immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
+8. Framework paths are protected (`CLAUDE.md`, `.claude/`, `.agents/`, `.github/copilot-instructions.md`, `.codestream/`) — never deleted, moved, or mass-overwritten by any skill or scaffolding step under any circumstance. If these paths ever go missing, stop and tell the user immediately rather than proceeding. **Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. On 2026-09-17 the project was renamed from SLIPSTREAM to CODESTREAM, renaming `.slipstream/` to `.codestream/` via explicit user instruction, immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
 9. Milestones must be **vertical slices** (restated from rule 2 for emphasis, since horizontal-layer proposals are the single most common roadmap mistake): every milestone produces something a user can run and use, never a types-only/API-only/UI-only slice.
 
 ### 10. Cross-tool pre-flight integrity check — mandatory, hard-blocking
@@ -115,3 +116,35 @@ The failure it prevents is a one-command trap, not slow drift. Every runtime fil
 The marker lives at the repo root rather than inside `.codestream/` deliberately: adoption copies `.codestream/` wholesale, so a flag inside it would travel downstream and block real projects instead of this one. The marker is **not** part of `README.md`'s adoption copy list, and must never be added to it.
 
 Overriding is possible but must be deliberate and session-scoped: the user states explicitly that they intend to dogfood the framework in the template repo. If a downstream project ever shows this marker, it was copied in by mistake — delete the marker there; do not weaken the check here.
+
+### 23. A spec is reconciled against the build before it is archived
+
+Layer 2 audits the build against the spec. Nothing audits the spec against what the build actually proved — and rule 20 then files the spec away byte-identical. The result is that a clause the phase *disproved* is archived indistinguishably from a clause the phase validated: the next project reads both as equally established precedent.
+
+At `/steer`, once Layer 2 and Layer 3 are clear and **before** rule 20's archive step, produce a **Spec Reconciliation** labelling every clause in the closing spec's binding sections (Key Behaviors, Resolved Ambiguities, Norms, Safeguards, Scope Guardrail):
+
+| Label | Meaning | Routes to |
+|---|---|---|
+| `VALIDATED` | An AC row exists and passed; the clause is unchanged | — |
+| `CORRECTED` | The clause had to be amended for the AC to pass — cite both texts | — |
+| `DEFECTIVE` | The AC row failed, or the clause was disproved | `/plan` |
+| `UNVERIFIABLE` | A binding clause with no AC row | `/plan` |
+| `SCOPE CREEP` | Built behaviour that no clause authorises | `/log` |
+| `SILENT DROP` | A clause with no built artifact | `/diagnose` |
+
+Two constraints keep this a reconciliation rather than a rewrite:
+
+- **The archived spec's normative text is never edited.** Code does not get to redefine what was asked for. A `DEFECTIVE` or `CORRECTED` clause is fixed in the *next* phase's spec, through `/plan` — never patched in place in the archived copy.
+- **A `DEFECTIVE` clause must not become precedent.** It is an open item handed to `/plan` or `/log`, not a closed annotation. Recording the defect and then leaving it in the archive unaddressed is the failure this rule exists to prevent.
+
+The reconciliation is a required section of the critic's report, and rule 19's citation discipline applies to it. That is what makes it enforced rather than advisory: `/steer` cannot assemble `VERIFICATION_REPORT.md` without it.
+
+### 24. Verify from disk, in full — context is not evidence
+
+Rule 10 already applies this discipline to exactly one file: `STATE.json` is re-read and actually parsed, never trusted from an earlier read. Rule 24 generalises it to every artifact. **An artifact is verified from its bytes on disk, read in full, at the moment of verification.**
+
+A file that was correct when written is not evidence it is correct when read. This is not hypothetical — a file edited through an IDE can be silently reverted by a stale editor buffer, leaving it right when written and wrong when read. No check inside `.codestream/` can catch that, because that state does not know what the source tree is supposed to look like. It has already invalidated a run that would otherwise have *looked like a pass*: `/execute` rebuilt a feature that was already committed, the critic audited a pre-built artifact, and every gate reported green.
+
+Partial reading is the same failure one step earlier. A referenced file that was skimmed, summarised, or never opened has not been read — and a binding clause inside it cannot honestly be called honoured or verified. `audit_critic` step 2c-ii is this rule applied to a claim's input domain: an AC that spot-checks ordinary values has not established an absolute claim about the whole domain.
+
+This is conduct, not state — no checker can confirm it. Its enforcement is that every verification step in this framework opens by reading its inputs from disk, which rule 10 already demonstrates for one file.

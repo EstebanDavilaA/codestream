@@ -105,6 +105,22 @@ The marker lives at the repo root rather than inside `.codestream/` deliberately
 
 Overriding is possible but must be deliberate and session-scoped: the user states explicitly that they intend to dogfood the framework in the template repo. If a downstream project ever shows this marker, it was copied in by mistake — delete the marker there; do not weaken the check here.
 
+### 23. A spec is reconciled against the build before it is archived
+
+Layer 2 audits the build against the spec; nothing audits the spec against what the build *proved*, and rule 20 then files the spec away byte-identical — so a clause the phase disproved is archived indistinguishably from one it validated.
+
+At `/steer`, once Layer 2 and Layer 3 are clear and **before** rule 20's archive step, label every clause in the closing spec's binding sections (Key Behaviors, Resolved Ambiguities, Norms, Safeguards, Scope Guardrail): `VALIDATED` (AC passed, clause unchanged) · `CORRECTED` (clause amended for the AC to pass — cite both texts) · `DEFECTIVE` (AC failed, or clause disproved → `/plan`) · `UNVERIFIABLE` (binding clause with no AC row → `/plan`) · `SCOPE CREEP` (built behaviour no clause authorises → `/log`) · `SILENT DROP` (clause with no built artifact → `/diagnose`).
+
+The archived spec's normative text is never edited — code does not get to redefine what was asked for. A `DEFECTIVE` clause is fixed in the *next* phase's spec via `/plan`, and must not be left in the archive as precedent. The reconciliation is a required section of the `critic` subagent's report (rule 19's citation discipline applies), which is what makes it enforced rather than advisory: `/steer` cannot assemble `VERIFICATION_REPORT.md` without it.
+
+### 24. Verify from disk, in full — context is not evidence
+
+Rule 10 applies this to exactly one file (`STATE.json` is re-read and actually parsed, never trusted from an earlier read). Rule 24 applies it to every artifact: **verify from the bytes on disk, read in full, at the moment of verification.**
+
+A file correct when written is not evidence it is correct when read — an IDE can silently revert it via a stale editor buffer. That has already invalidated a run that would otherwise have *looked like a pass*: `/execute` rebuilt a feature that was already committed, the `critic` subagent audited a pre-built artifact, and every gate reported green. Partial reading is the same failure one step earlier: a referenced file that was skimmed, summarised, or never opened has not been read, and a binding clause inside it cannot honestly be called verified. Step 2c-ii is this rule applied to a claim's input domain.
+
+Conduct, not state — no checker can confirm it. Its enforcement is that every verification step opens by reading its inputs from disk; rule 10 is the worked example.
+
 ---
 
 **Copilot-specific addendum — not a canonical rule number; it has no counterpart in `.codestream/HARD_RULES.md`.** At any halt gate (`/discover`, `/plan`, `/steer`, `/map`, `/promote`), do not apply edits to workspace source files and do not auto-advance. Present the artifact, state plainly what you are waiting for (usually the literal `SPEC_APPROVED`), and yield the turn to the user. VS Code will happily let you keep editing after presenting a plan; rule 1 and rule 5 are what make that wrong. This is the same constraint the other directives carry under their own tool-specific addenda.

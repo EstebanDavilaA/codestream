@@ -23,6 +23,7 @@ The executor's tests are evidence, not proof. A test suite written by the same a
    - **Mechanism mislabeling** — implementation that uses a different technique than what's documented/named, while presenting itself as compliant (e.g. a simple synthesis method standing in for a named format/library it claims to implement). Check names, comments, and docs against what the code actually does, not just against what it outputs.
    A passing test suite proves neither of these absent — both patterns are specifically designed (intentionally or not) to satisfy shallow tests while being wrong underneath.
 6. Separately, run the existing test suite and note whether it passes — but this is one input, not your verdict.
+7. **Produce the Spec Reconciliation (rule 23).** Label every clause in the spec's binding sections — Key Behaviors, Resolved Ambiguities, Norms, Safeguards, Scope Guardrail — with exactly one of `VALIDATED`, `CORRECTED`, `DEFECTIVE`, `UNVERIFIABLE`, `SCOPE CREEP`, `SILENT DROP`, citing the AC row that establishes it. A clause with no AC row is `UNVERIFIABLE` even when the code plainly implements it. This section is required on every verdict, PASS or FAIL — on FAIL it is the evidence `/diagnose` needs to tell an implementation bug from a spec error (rule 4), and the input `/plan` needs if the clause itself was wrong. Annotate the spec; never edit its normative text — code does not get to redefine what was asked for.
 
 ## Output: `.codestream/archive/CRITIC_REPORT.md`
 **This file is a cumulative log across the entire project's lifetime, not a per-milestone scratch file (`.codestream/HARD_RULES.md` rule 12). Read its current content first, then APPEND a new dated section below whatever's already there. Never truncate, replace, or overwrite existing entries — a tool call that would write the whole file needs the prior content re-included, not discarded.** Write as UTF-8 (rule 14).
@@ -42,6 +43,15 @@ The executor's tests are evidence, not proof. A test suite written by the same a
 - List any silent assumption the implementation made that the spec didn't authorize.
 - List any Norm asserted in the spec with no corresponding AC row — declared but never checked.
 - List any Safeguard whose specified value could not be verified against the observed one, with both values quoted.
+- List any built behaviour with no authorising clause (SCOPE CREEP), and any clause with no built artifact (SILENT DROP).
+
+## Spec Reconciliation (rule 23)
+Every clause in the spec's binding sections gets exactly one label. Required on every verdict.
+| Clause | Section | AC row | Label | Note |
+|--------|---------|--------|-------|------|
+| <clause, quoted or closely paraphrased> | Key Behaviors / Resolved Ambiguities / Norms / Safeguards / Scope Guardrail | AC-N or — | VALIDATED / CORRECTED / DEFECTIVE / UNVERIFIABLE / SCOPE CREEP / SILENT DROP | one line: what was observed |
+
+`VALIDATED` an AC row exists and passed, clause unchanged · `CORRECTED` the clause had to be amended for the AC to pass — cite both texts · `DEFECTIVE` the AC row failed, or the clause was disproved · `UNVERIFIABLE` a binding clause with no AC row · `SCOPE CREEP` built behaviour no clause authorises · `SILENT DROP` a clause with no built artifact.
 
 ## Verdict
 PASS — implementation matches approved spec intent.
@@ -49,4 +59,4 @@ FAIL — <specific reason>. Route to /diagnose before re-attempting.
 ```
 
 ## Hard rule
-Never mark PASS solely because tests pass. If the trace surfaces even one PARTIAL or NO, the verdict is FAIL regardless of test suite status.
+Never mark PASS solely because tests pass. If the trace surfaces even one PARTIAL or NO, the verdict is FAIL regardless of test suite status. A report missing its Spec Reconciliation section is incomplete — do not write a verdict without it.
