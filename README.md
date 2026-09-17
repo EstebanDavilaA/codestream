@@ -58,7 +58,7 @@ It is stack-agnostic and tool-agnostic. Nothing in the framework assumes a langu
 
 ## Using it on a new project
 
-1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, `.github/copilot-instructions.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one. Do **not** copy `.codestream-template`, `scripts/`, or `.github/workflows/` — those are the template repo's own tooling, and copying the marker would make `/onboard` refuse to start in your project (rule 22).
+1. Copy `.claude/`, `.agents/`, `.codestream/`, `CLAUDE.md`, `.github/copilot-instructions.md`, and `.gitignore` into your project root. Merge `.gitignore` rather than overwriting if you already have one. From `.github/`, copy **only** `copilot-instructions.md` — everything else under it (`.github/workflows/`, `.github/skills/`) is template-repo tooling. So are `.codestream-template`, `scripts/`, and `docs/`. Copying `.codestream-template` in particular would make `/onboard` refuse to start in your project, because it marks this directory as the framework's own source rather than a project built with it (rule 22).
 2. Fill in the **Project-specific context** block at the bottom of every directive you kept — `CLAUDE.md`, `.agents/AGENTS.md`, `.github/copilot-instructions.md`. The Layer 1 command table is the part that matters most — rule 13 requires all four gates, and the agents need to know what to run. Mark any gate that genuinely doesn't apply as `N/A — <reason>` rather than dropping it silently.
 3. Open the project and run `/onboard`.
 
@@ -125,6 +125,8 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
 .codestream-template  marker: this repo is the framework's own source, not a project (rule 22)
 scripts/           check-framework.py — template-repo integrity check (not copied downstream)
 .github/workflows/ framework-integrity.yml — runs the check on every push and PR
+.github/skills/    repo-intake — the template's own repo-research tooling (not copied downstream)
+docs/              REPO_INTAKE.md — the brief that tool follows (not copied downstream)
 .claude/
   skills/          14 skills: 13 lifecycle commands + /extract-template (framework maintenance)
   agents/          11 subagents, each spawned by exactly one skill above
