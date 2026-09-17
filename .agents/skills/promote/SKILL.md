@@ -10,8 +10,8 @@ description: Use when a prototype built in /prototype mode has been validated by
 ## What to do
 
 1. Run the `map_codebase` skill to audit what exists — treat the prototype code as ground truth for "what already works," not as scaffolding to throw away.
-2. `map_codebase` produces `.slipstream/ROADMAP.md` using the **vertical-slice milestone template** (see below), not a layer-based one. The prototype itself typically becomes (or informs) Milestone 1.
-3. Initialize `.slipstream/STATE.json` with `current_state: 1` (roadmap exists, not yet planning) since discovery is effectively already done — the prototype *was* the discovery process.
+2. `map_codebase` produces `.codestream/ROADMAP.md` using the **vertical-slice milestone template** (see below), not a layer-based one. The prototype itself typically becomes (or informs) Milestone 1.
+3. Initialize `.codestream/STATE.json` with `current_state: 1` (roadmap exists, not yet planning) since discovery is effectively already done — the prototype *was* the discovery process.
 4. Present the roadmap and **halt** for the user's direct approval before `/plan` begins on the next milestone. Do not route to `/steer` for this — `/steer` opens by auditing a completed build against an approved spec, and at roadmap time neither exists.
 
 ## Vertical-slice milestone template

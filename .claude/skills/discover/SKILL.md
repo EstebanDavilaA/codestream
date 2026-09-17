@@ -9,7 +9,7 @@ description: Use to formalize intent into a discovery document when starting fro
 
 ## What to do
 1. Spawn the `intent-discoverer` subagent with the user's project description.
-2. It returns `.slipstream/DISCOVERY.md`: a core problem statement, intended human outcome, and up to 5 open questions grouped into Value & Experience, Domain Mechanics, and Constraints & Non-Goals.
+2. It returns `.codestream/DISCOVERY.md`: a core problem statement, intended human outcome, and up to 5 open questions grouped into Value & Experience, Domain Mechanics, and Constraints & Non-Goals.
 3. Present it to the user with every question in the Answer Log marked `Pending user response`.
 
 ## Halt gate

@@ -1,5 +1,5 @@
 {
-  "framework": "SLIPSTREAM",
+  "framework": "CODESTREAM",
   "version": "1.0.0",
   "current_state": 0,
   "active_milestone": null,
@@ -11,8 +11,8 @@
     "active_spec_approved": false
   },
   "artifacts": {
-    "discovery": ".slipstream/DISCOVERY.md",
-    "roadmap": ".slipstream/ROADMAP.md",
+    "discovery": ".codestream/DISCOVERY.md",
+    "roadmap": ".codestream/ROADMAP.md",
     "active_spec": null,
     "verification_report": null
   }

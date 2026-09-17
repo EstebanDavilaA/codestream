@@ -1,6 +1,6 @@
-# SLIPSTREAM Bug Log
+# CODESTREAM Bug Log
 
-This document tracks implementation defects and regressions recorded via `/log`. New feature requests and UX ideas are logged in `.slipstream/FEATURES.md`.
+This document tracks implementation defects and regressions recorded via `/log`. New feature requests and UX ideas are logged in `.codestream/FEATURES.md`.
 
 ---
 

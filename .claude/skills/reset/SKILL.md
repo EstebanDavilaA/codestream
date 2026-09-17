@@ -1,27 +1,27 @@
 ---
 name: reset
-description: Use when implementation or refactoring breaks too many features or causes cascading regressions across the codebase. Resets code and .slipstream state back to a known clean checkpoint (git commit, tag, or prior verified milestone/phase). Triggered by /reset.
+description: Use when implementation or refactoring breaks too many features or causes cascading regressions across the codebase. Resets code and .codestream state back to a known clean checkpoint (git commit, tag, or prior verified milestone/phase). Triggered by /reset.
 ---
 
 # State Recovery: Reset to Clean Checkpoint
 
-**Rule:** When an implementation attempt or refactor introduces widespread feature breakage, cascading test failures, or corrupted code that is too costly or risky to patch incrementally, do NOT keep adding diagnostic patches. Reset the codebase and `.slipstream/` state back to a known clean checkpoint.
+**Rule:** When an implementation attempt or refactor introduces widespread feature breakage, cascading test failures, or corrupted code that is too costly or risky to patch incrementally, do NOT keep adding diagnostic patches. Reset the codebase and `.codestream/` state back to a known clean checkpoint.
 
 ## What to do
 
 1. **Identify Target Checkpoint:**
-   Determine the target restoration point with the user or from `.slipstream/STATE.json`:
-   - **Verified Milestone / Phase Target**: The last passing verification checkpoint (`gate: "verified"` or `gate: "steered"` in `.slipstream/STATE.json`).
+   Determine the target restoration point with the user or from `.codestream/STATE.json`:
+   - **Verified Milestone / Phase Target**: The last passing verification checkpoint (`gate: "verified"` or `gate: "steered"` in `.codestream/STATE.json`).
    - **Phase Spec Baseline Target**: The git commit prior to executing the active phase's spec (`SPEC_APPROVED`).
    - **Explicit Commit / Tag Target**: A specific git commit SHA, tag, or `HEAD~N`.
 
 2. **Audit Blast Radius & Stash Scratch Work:**
    - Inspect `git status` and `git diff --stat` to present all changed/broken files to the user.
-   - If there are uncommitted experiments, debug scripts, or scratch files to preserve, stash them (`git stash`) or copy them to `.slipstream/archive/stashed_experiments/`.
+   - If there are uncommitted experiments, debug scripts, or scratch files to preserve, stash them (`git stash`) or copy them to `.codestream/archive/stashed_experiments/`.
 
 3. **Execute Reset via `reset-specialist` Agent:**
    - Spawn `reset-specialist` agent to perform the filesystem & git restoration.
-   - Realign `.slipstream/STATE.json`, `.slipstream/ROADMAP.md`, and `.slipstream/active/` so GSD runtime state strictly matches the restored code baseline.
+   - Realign `.codestream/STATE.json`, `.codestream/ROADMAP.md`, and `.codestream/active/` so CODESTREAM runtime state strictly matches the restored code baseline.
 
 4. **Post-Reset Baseline Verification:**
    - Run full project build and unit test suite (`npm test`).

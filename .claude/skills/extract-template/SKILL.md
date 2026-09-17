@@ -5,9 +5,9 @@ description: Use to push framework improvements made in this downstream project 
 
 # Extract Template: Propagate Framework Improvements Upstream
 
-**Rule:** This project's `.claude/`, `.agents/`, and `.slipstream/HARD_RULES.md`/`.slipstream/templates/` are a downstream, battle-tested copy of this project's upstream framework template — **fill in the template name and absolute path here when you adopt this skill into a project** (e.g. "the SLIPSTREAM template at `/path/to/Templates/SLIPSTREAM`"). When this project refines the framework itself (a new skill, a hardened agent prompt, a new hard rule, a corrected spec template), that improvement is only useful to future projects once it's copied back upstream. This skill does that copy — diff first, scrub project-specific content, get explicit approval, then write. It never commits or pushes inside the template repo on its own initiative.
+**Rule:** This project's `.claude/`, `.agents/`, and `.codestream/HARD_RULES.md`/`.codestream/templates/` are a downstream, battle-tested copy of this project's upstream framework template — **fill in the template name and absolute path here when you adopt this skill into a project** (e.g. "the CODESTREAM template at `/path/to/Templates/CODESTREAM`"). When this project refines the framework itself (a new skill, a hardened agent prompt, a new hard rule, a corrected spec template), that improvement is only useful to future projects once it's copied back upstream. This skill does that copy — diff first, scrub project-specific content, get explicit approval, then write. It never commits or pushes inside the template repo on its own initiative.
 
-This is framework tooling, not a project feature — it is exempt from the `SPEC_APPROVED` lifecycle (`CLAUDE.md` rule 1 governs app code; this skill never touches `apps/`, `packages/`, or app-level `.slipstream/` runtime state). Treat it like rule 7's lightweight-task exception: no spec, no critic, no steering log entry. Just diff, confirm, write.
+This is framework tooling, not a project feature — it is exempt from the `SPEC_APPROVED` lifecycle (`CLAUDE.md` rule 1 governs app code; this skill never touches `apps/`, `packages/`, or app-level `.codestream/` runtime state). Treat it like rule 7's lightweight-task exception: no spec, no critic, no steering log entry. Just diff, confirm, write.
 
 ## Non-negotiables
 
@@ -23,8 +23,8 @@ Compare only these paths between the project root and the template root. Anythin
 
 **In scope (diff and propose):**
 - `CLAUDE.md`
-- `.slipstream/HARD_RULES.md`
-- `.slipstream/templates/**` (spec/roadmap/state-schema/steering-checkpoint templates)
+- `.codestream/HARD_RULES.md`
+- `.codestream/templates/**` (spec/roadmap/state-schema/steering-checkpoint templates)
 - `.claude/skills/**/SKILL.md`
 - `.claude/agents/**/*.md`
 - `.agents/AGENTS.md`
@@ -32,12 +32,12 @@ Compare only these paths between the project root and the template root. Anythin
 - `.agents/workflows/**/*.md` — legacy structure. If the project has deleted files here in favor of `.agents/skills/`, that is a **structural** change to propose (retire the workflow file and confirm/create its `.agents/skills/` counterpart in the template), not a content diff to ignore because the file is "just gone."
 
 **Out of scope (never diff or touch):**
-- `.slipstream/STATE.json`, `.slipstream/ROADMAP.md`, `.slipstream/DISCOVERY.md`, `.slipstream/BUGS.md`, `.slipstream/FEATURES.md`, `.slipstream/active/**`, `.slipstream/archive/**`, `.slipstream/documents/**`, `.slipstream/scratch/**` — this project's runtime state, never template content.
+- `.codestream/STATE.json`, `.codestream/ROADMAP.md`, `.codestream/DISCOVERY.md`, `.codestream/BUGS.md`, `.codestream/FEATURES.md`, `.codestream/active/**`, `.codestream/archive/**`, `.codestream/documents/**`, `.codestream/scratch/**` — this project's runtime state, never template content.
 - `.claude/settings.json`, `.claude/settings.local.json` — contains this machine/project's literal paths and permission allowlist, not generic framework config.
 - `README.md`, `LICENSE`, `.gitattributes`, `.gitignore` at the project root — project packaging, not framework. (The template's own `README.md` documents the framework and is edited directly in the template repo, not derived from the project's.)
 - `apps/`, `packages/`, and everything else that is the actual application.
 
-If the user asks to extract something outside this default scope (e.g. a specific `.slipstream/templates` addition that isn't listed, or a genuinely reusable snippet from README.md), treat that as an explicit one-off addition to the scope for this run — call it out in the summary like any other proposed change.
+If the user asks to extract something outside this default scope (e.g. a specific `.codestream/templates` addition that isn't listed, or a genuinely reusable snippet from README.md), treat that as an explicit one-off addition to the scope for this run — call it out in the summary like any other proposed change.
 
 ## Process
 
@@ -64,13 +64,13 @@ If the user asks to extract something outside this default scope (e.g. a specifi
 
 5. **Present the summary before writing anything.** Group by file, one line per candidate change:
    ```
-   UPDATE  .slipstream/HARD_RULES.md         — adds rules 16–21 (generic, no scrubbing needed)
+   UPDATE  .codestream/HARD_RULES.md         — adds rules 16–21 (generic, no scrubbing needed)
    ADD     .claude/skills/log/SKILL.md — new skill, ported from Gemini side per rule 16
    STRUCTURAL .agents/workflows/*.md → .agents/skills/*/SKILL.md — project retired workflows/ in favor of skills/; template still has both
    SKIP    CLAUDE.md "Project-specific context" section — project-specific, not propagated
    ```
    Ask the user to approve the whole batch, approve a subset, or adjust. Do not write until they respond.
 
-6. **Apply approved changes.** Copy file contents (or hand-edit for partial/scrubbed diffs) into the template repo at the matching path. For `.slipstream/templates/STATE_SCHEMA_TEMPLATE.json` or any other JSON file, read-parse-mutate-serialize rather than text-splicing (same discipline as `CLAUDE.md` rule 17, applied here because it's the same failure mode). Create new directories as needed for additions.
+6. **Apply approved changes.** Copy file contents (or hand-edit for partial/scrubbed diffs) into the template repo at the matching path. For `.codestream/templates/STATE_SCHEMA_TEMPLATE.json` or any other JSON file, read-parse-mutate-serialize rather than text-splicing (same discipline as `CLAUDE.md` rule 17, applied here because it's the same failure mode). Create new directories as needed for additions.
 
 7. **Verify and report.** Re-run `git -C <template> status --short` and `git -C <template> diff --stat` and show the user what actually landed. Remind them the template repo's changes are uncommitted — they review and commit (or discard) at their own pace; this skill does not do it for them.

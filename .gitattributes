@@ -1,4 +1,4 @@
-# SLIPSTREAM framework files are LF in the repository and in the working tree.
+# CODESTREAM framework files are LF in the repository and in the working tree.
 # Agents read and rewrite these constantly; a mixed-ending tree produces
 # spurious whole-file diffs that bury real rule changes.
 * text=auto eol=lf

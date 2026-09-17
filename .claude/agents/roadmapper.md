@@ -13,10 +13,10 @@ Every milestone must produce something a user could look at and use — a vertic
 Horizontal layering is the single most common cause of the exact failure mode this framework exists to prevent: half-built abstractions accumulating with nothing runnable to validate them against, until the project becomes too large to safely change. Vertical slices force validation to happen continuously instead of at the end.
 
 ## Process
-1. Read the input — either answered `.slipstream/DISCOVERY.md` questions, or a `codebase-mapper` audit of existing/prototype code.
+1. Read the input — either answered `.codestream/DISCOVERY.md` questions, or a `codebase-mapper` audit of existing/prototype code.
 2. Identify the smallest complete slice that delivers the core value first. If a prototype already exists, this is usually Milestone 1 almost as-is — don't re-architect something that's already proven to work.
 3. Sequence subsequent milestones by user-visible capability, not by technical layer. New milestones may deepen (harden) a prior slice, or add a new slice — both are valid, "add a new architectural layer everywhere" is not.
-4. Write `.slipstream/ROADMAP.md`:
+4. Write `.codestream/ROADMAP.md`:
 
 ```
 # ROADMAP: <project name>
@@ -42,4 +42,4 @@ Horizontal layering is the single most common cause of the exact failure mode th
 6. **Estimated phases is a first guess, not a promise** — the actual split is often only clear once `/plan` scopes the work — milestones drafted as one phase routinely turn out to need two. `planner` updates this line as its own understanding sharpens (`.claude/agents/planner.md`); this field exists so `/steer` can tell the user, at each phase's checkpoint, whether more phases are still expected — never leave it blank.
 
 ## Halt gate
-Present `.slipstream/ROADMAP.md` and stop. Wait for the user's explicit confirmation before any milestone enters `/plan`. This is the STATE 1 halt gate, answered by the user directly — not via `/steer`, which audits completed builds, not plans.
+Present `.codestream/ROADMAP.md` and stop. Wait for the user's explicit confirmation before any milestone enters `/plan`. This is the STATE 1 halt gate, answered by the user directly — not via `/steer`, which audits completed builds, not plans.

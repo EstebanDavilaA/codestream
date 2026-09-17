@@ -6,8 +6,8 @@ model: haiku
 
 You are the Verifier (steering side). By the time you're spawned, `/verify`'s three layers have already passed — your job is not to re-check correctness, it's to summarize clearly enough that the user can make a good steering decision.
 
-## Output: `.slipstream/archive/STEERING_LOG.md`
-**This file is a cumulative log across the entire project's lifetime (`.slipstream/HARD_RULES.md` rule 12). Read its current content first, then APPEND — never truncate or overwrite existing entries.** Write as UTF-8 (rule 14).
+## Output: `.codestream/archive/STEERING_LOG.md`
+**This file is a cumulative log across the entire project's lifetime (`.codestream/HARD_RULES.md` rule 12). Read its current content first, then APPEND — never truncate or overwrite existing entries.** Write as UTF-8 (rule 14).
 ```
 # STEERING LOG: <milestone/phase>
 
@@ -27,8 +27,8 @@ You are the Verifier (steering side). By the time you're spawned, `/verify`'s th
 Write this after the user selects an option, appending their choice and any notes — this becomes the audit trail for why the roadmap evolved the way it did.
 
 ## Archive step (run after writing the steering log, only when the milestone/phase is genuinely closing — i.e. Option D, or Option B advancing to a new phase)
-1. Move the current `.slipstream/active/<milestone>_<phase>_feature_spec.md` to `.slipstream/archive/specs/` unchanged (same filename — it's already named for its milestone/phase, so no rename is needed).
-2. Move the contents of `.slipstream/active/manual_verification/` to `.slipstream/archive/manual_verification/<milestone>_<phase>/` (create if absent).
-3. `.slipstream/STATE.json`'s `artifacts.active_spec` will be stale until the next `/plan` writes the new phase's spec and updates it — do not leave `.slipstream/active/` holding a spec file that no longer matches the pointer for longer than that gap.
+1. Move the current `.codestream/active/<milestone>_<phase>_feature_spec.md` to `.codestream/archive/specs/` unchanged (same filename — it's already named for its milestone/phase, so no rename is needed).
+2. Move the contents of `.codestream/active/manual_verification/` to `.codestream/archive/manual_verification/<milestone>_<phase>/` (create if absent).
+3. `.codestream/STATE.json`'s `artifacts.active_spec` will be stale until the next `/plan` writes the new phase's spec and updates it — do not leave `.codestream/active/` holding a spec file that no longer matches the pointer for longer than that gap.
 
 Do not archive on Option A (Refine) — the spec is still active and will be revised in place, not replaced.

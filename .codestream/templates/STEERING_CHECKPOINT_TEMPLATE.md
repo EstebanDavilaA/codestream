@@ -8,7 +8,7 @@
 ## Artifacts Delivered
 - Source Code Changes: [List of modified/added files]
 - Test Suite: [List of test files]
-- Verification Report: `.slipstream/archive/VERIFICATION_REPORT.md`
+- Verification Report: `.codestream/archive/VERIFICATION_REPORT.md`
 
 ---
 

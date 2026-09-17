@@ -14,11 +14,11 @@ Every milestone must produce something a user could look at and use — a vertic
 Horizontal layering is the single most common cause of the exact failure mode this framework exists to prevent: half-built abstractions accumulating with nothing runnable to validate them against, until the project becomes too large to safely change. Vertical slices force validation to happen continuously instead of at the end.
 
 ## Process
-1. Read the input — answered `.slipstream/DISCOVERY.md` questions, a `map_codebase` audit of existing code, and all candidate entries logged in `.slipstream/FEATURES.md` and `.slipstream/BUGS.md`.
+1. Read the input — answered `.codestream/DISCOVERY.md` questions, a `map_codebase` audit of existing code, and all candidate entries logged in `.codestream/FEATURES.md` and `.codestream/BUGS.md`.
 2. Identify the smallest complete slice that delivers core value first.
 3. Sequence subsequent milestones by user-visible capability, incorporating logged features (`FEAT-xxx`) and open scope gaps/defects (`BUG-xxx`) into logical milestone slices.
-4. **Update Item Status**: For every feature (`FEAT-xxx` in `.slipstream/FEATURES.md`) or bug (`BUG-xxx` in `.slipstream/BUGS.md`) assigned to a milestone on `.slipstream/ROADMAP.md`, update its status to `SCHEDULED_MILESTONE (Milestone X)`.
-5. Write `.slipstream/ROADMAP.md`:
+4. **Update Item Status**: For every feature (`FEAT-xxx` in `.codestream/FEATURES.md`) or bug (`BUG-xxx` in `.codestream/BUGS.md`) assigned to a milestone on `.codestream/ROADMAP.md`, update its status to `SCHEDULED_MILESTONE (Milestone X)`.
+5. Write `.codestream/ROADMAP.md`:
 
 ```
 # ROADMAP: <project name>
@@ -44,5 +44,5 @@ Horizontal layering is the single most common cause of the exact failure mode th
 7. **Estimated phases is a first guess, not a promise** — the actual split is often only clear once `/plan` scopes the work. `plan_spec` updates this line as its own understanding sharpens; this field exists so `/steer` can tell the user, at each phase's checkpoint, whether more phases are still expected — never leave it blank.
 
 ## Halt gate
-- Present `.slipstream/ROADMAP.md` and stop execution immediately.
+- Present `.codestream/ROADMAP.md` and stop execution immediately.
 - **MANDATORY TOOL RESTRICTION**: Do NOT invoke any file modification tools (`replace_file_content`, `write_to_file`, `multi_replace_file_content`) on workspace code files. Yield the turn and wait for the user's explicit confirmation before any milestone enters `/plan`. This is the STATE 1 halt gate, answered by the user directly — not via `/steer`, which audits completed builds, not plans.

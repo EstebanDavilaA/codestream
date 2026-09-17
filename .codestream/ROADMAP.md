@@ -36,4 +36,4 @@
 - **Verification Threshold:** End-to-end integration test suite passage.
 
 ---
-> **HALT GATE (STATE 1):** Present .slipstream/ROADMAP.md to the user. Ask: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"* Wait for explicit user authorization before proceeding to State 2.
+> **HALT GATE (STATE 1):** Present .codestream/ROADMAP.md to the user. Ask: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"* Wait for explicit user authorization before proceeding to State 2.

@@ -50,4 +50,4 @@
 
 ---
 
-> **HALT GATE (STATE 1):** Present `.slipstream/ROADMAP.md` to the user. Ask: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"* Before presenting, self-check every milestone against the anti-pattern table above — a horizontal layer that reaches the user is a rule-2 violation that will cost a reslice later. Wait for explicit user authorization before proceeding to State 2.
+> **HALT GATE (STATE 1):** Present `.codestream/ROADMAP.md` to the user. Ask: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"* Before presenting, self-check every milestone against the anti-pattern table above — a horizontal layer that reaches the user is a rule-2 violation that will cost a reslice later. Wait for explicit user authorization before proceeding to State 2.

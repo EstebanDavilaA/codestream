@@ -1,4 +1,4 @@
-# SLIPSTREAM Feature Log
+# CODESTREAM Feature Log
 
 This document tracks feature requests, UX enhancements, layout polish, and candidate capability ideas recorded via `/log`.
 
@@ -8,7 +8,7 @@ This document tracks feature requests, UX enhancements, layout polish, and candi
 
 Every entry follows this status progression:
 - **`LOGGED`**: New feature request or idea logged via `/log`.
-- **`SCHEDULED_MILESTONE (Milestone X)`**: Incorporated into `.slipstream/ROADMAP.md` via `/roadmap_slices` or `/discover`.
+- **`SCHEDULED_MILESTONE (Milestone X)`**: Incorporated into `.codestream/ROADMAP.md` via `/roadmap_slices` or `/discover`.
 - **`IN_PLANNING`**: Included in an active feature spec being drafted in `/plan`.
 - **`IN_EXECUTION`**: Feature implementation underway in `/execute`.
 - **`CLOSED`**: Verified complete by `/verify` and archived during `/steer`.

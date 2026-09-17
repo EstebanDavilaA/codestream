@@ -23,11 +23,11 @@ description: Use when the user has a raw, unstructured idea and wants something 
 4. Report back with what was built, how to run it, and one line naming what was deliberately skipped/hardcoded (so it's not forgotten later).
 
 ## Explicitly out of scope in this mode
-- No `.slipstream/` files
+- No `.codestream/` files
 - No milestone roadmap
 - No test suite beyond "does it run"
 - No discussion of what this becomes later — that's what `/promote` is for
-- No deleting, moving, or overwriting `CLAUDE.md`, `.claude/`, `.agents/`, or `.slipstream/` — these are framework, never touched by scaffolding. If a project-init tool would wipe the target directory, scaffold elsewhere and copy files in instead.
+- No deleting, moving, or overwriting `CLAUDE.md`, `.claude/`, `.agents/`, or `.codestream/` — these are framework, never touched by scaffolding. If a project-init tool would wipe the target directory, scaffold elsewhere and copy files in instead.
 
 ## Exit condition
 Once the user has looked at the running prototype and says something like "yes, this is the idea" or "let's build this properly," suggest running `/promote` to formalize it into the full Architect framework. Do not suggest this before the user has actually validated the prototype — premature promotion defeats the point of this mode.

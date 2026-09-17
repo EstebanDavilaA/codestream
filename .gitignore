@@ -1,10 +1,11 @@
-# SLIPSTREAM: throwaway helper scripts and manifests generated during a run.
+# CODESTREAM: throwaway helper scripts and manifests generated during a run.
 # Kept out of version control — regenerate rather than commit.
-.slipstream/scratch/*
-!.slipstream/scratch/.gitkeep
+.codestream/scratch/*
+!.codestream/scratch/.gitkeep
 
 # Ungated spec drafts are working material, not tracked lifecycle artifacts.
-.slipstream/drafts/*
-!.slipstream/drafts/.gitkeep
+.codestream/drafts/*
+!.codestream/drafts/.gitkeep
 
 # --- add your project's own ignores below this line ---
+*.code-workspace

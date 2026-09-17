@@ -9,7 +9,7 @@ description: Use to audit code that already exists — including a validated pro
 
 ## What to do
 
-0. **Pre-flight.** If `.slipstream/STATE.json` already exists, run the rule 10 integrity check before anything else. `/map` is often invoked mid-project to re-baseline a roadmap, not only at first onboarding — do not assume you are on a clean slate.
+0. **Pre-flight.** If `.codestream/STATE.json` already exists, run the rule 10 integrity check before anything else. `/map` is often invoked mid-project to re-baseline a roadmap, not only at first onboarding — do not assume you are on a clean slate.
 
 1. Run the `map_codebase` skill to audit the repo.
 
@@ -17,19 +17,19 @@ description: Use to audit code that already exists — including a validated pro
    - If the project doesn't build/run at all, it stops short of feature milestones and proposes **Milestone 0: Stabilization** instead.
    - If it builds/runs with isolated known-broken features, it proceeds to a normal inventory and folds bug fixes into the milestone that owns that feature — never into a catch-all "bug fixing" milestone.
 
-3. Hand the findings to `roadmap_slices` to produce `.slipstream/ROADMAP.md`. The canonical milestone shape is `.slipstream/templates/ROADMAP_DECOUPLED_TEMPLATE.md` — including its anti-pattern table, which `roadmap_slices` must self-check against before presenting. Milestone 1 is typically the stabilization slice or "formalize what already works," not a rewrite. Every milestone carries an `Estimated phases` line; `/steer` depends on it to tell the user whether more phases are expected, so it is never left blank.
+3. Hand the findings to `roadmap_slices` to produce `.codestream/ROADMAP.md`. The canonical milestone shape is `.codestream/templates/ROADMAP_DECOUPLED_TEMPLATE.md` — including its anti-pattern table, which `roadmap_slices` must self-check against before presenting. Milestone 1 is typically the stabilization slice or "formalize what already works," not a rewrite. Every milestone carries an `Estimated phases` line; `/steer` depends on it to tell the user whether more phases are expected, so it is never left blank.
 
-4. **Write `.slipstream/STATE.json`** through the rule 17 read-parse-mutate-serialize-reparse discipline (never a text splice):
+4. **Write `.codestream/STATE.json`** through the rule 17 read-parse-mutate-serialize-reparse discipline (never a text splice):
    - `current_state: 1` — a roadmap exists, planning has not begun. Same as `/promote`, and for the same reason: `/map` establishes intent from real code, so State 0 discovery is already effectively satisfied.
    - `gate_approvals.roadmap_approved: false` — the roadmap is drafted, not yet authorized. Step 5's halt is what flips it.
-   - `artifacts.roadmap: ".slipstream/ROADMAP.md"`.
+   - `artifacts.roadmap: ".codestream/ROADMAP.md"`.
    - Append one `state_history` entry for this `/map` completion **now**, before presenting (rule 18), carrying an `"agent"` field (rule 11).
    - Re-read and `JSON.parse` the file before treating the write as complete (rule 17).
 
 ## Halt gate
 
 Present the resulting roadmap and stop:
-- **MANDATORY TOOL RESTRICTION**: Do NOT invoke any file modification tools (`replace_file_content`, `write_to_file`, `multi_replace_file_content`) on workspace code files. Stop execution immediately and yield the turn — this is the STATE 1 halt gate, the same one `.slipstream/templates/ROADMAP_DECOUPLED_TEMPLATE.md` carries. Ask plainly: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"*
+- **MANDATORY TOOL RESTRICTION**: Do NOT invoke any file modification tools (`replace_file_content`, `write_to_file`, `multi_replace_file_content`) on workspace code files. Stop execution immediately and yield the turn — this is the STATE 1 halt gate, the same one `.codestream/templates/ROADMAP_DECOUPLED_TEMPLATE.md` carries. Ask plainly: *"Does this milestone sequence capture your vision, and are these boundaries sufficiently flexible?"*
 
 Do not route to `/steer` to obtain this approval. `/steer` opens by running `audit_critic` against the approved spec for the active milestone (rule 15 / Layer 2), and at roadmap time no spec and no build exist yet — there is nothing for it to audit. `/steer` is the checkpoint for *completed work*; this is the checkpoint for a *plan*.
 
