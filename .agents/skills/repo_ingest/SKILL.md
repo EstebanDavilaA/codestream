@@ -29,19 +29,11 @@ rather than describing the idea glowingly.
 
 2. **Read the source.** Establish what it actually does — its mechanism, not what its README claims.
    Cite file paths for every claim you make about it.
-   If the source is a document (PDF) rather than a repo, make it readable first:
-   - **Get the bytes locally.** A public URL can be downloaded directly. An auth-walled link (a
-     Google Drive file that redirects to sign-in, for example) must be fetched through a browser
-     session that is signed in — open it, trigger the viewer's Download, then locate the saved file
-     in the browser's download directory. If that fails, ask the user for a local copy — never
-     review a document you could not actually read (rule 24).
-   - **Convert it.** `opendataloader-pdf <file.pdf> -o <outdir> -f markdown,json` — Apache-2.0,
-     local, deterministic; needs Java 11+ and a one-time `uv tool install opendataloader-pdf`
-     (pipx or a venv works too). Read the generated `<name>.md` from disk; `<name>.json` carries
-     page numbers and bounding boxes for citations. Scanned PDFs need the hybrid OCR mode instead
-     (`--hybrid`, see `opendataloader-pdf --help`); plain mode extracts text-layer PDFs.
-   - **Read before citing.** For a long document, read the full table of contents first, then read
-     in full every section you cite. Cite sections and page numbers the way you cite file paths.
+   If the source is a document (PDF) rather than a repo: it must first be made readable —
+   `/document-ingest` owns acquiring and converting documents (and files the ones that are kept).
+   Read the converted Markdown from disk — cite sections and page numbers the way file paths are
+   cited — then apply this skill's process to what you read. Never evaluate a document you could
+   not actually read (rule 24).
 
 3. **Verify every gap you are about to claim.** Before saying this project lacks something, grep
    for it. A remembered or stale measurement is how a review produces a confident wrong finding.

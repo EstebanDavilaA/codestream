@@ -126,10 +126,10 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
 scripts/           check-framework.py — template-repo integrity check (not copied downstream)
 .github/workflows/ framework-integrity.yml — runs the check on every push and PR
 .claude/
-  skills/          15 skills: 13 lifecycle commands + /extract-template + /repo-ingest
+  skills/          16 skills: 13 lifecycle commands + /extract-template + /repo-ingest + /document-ingest
   agents/          11 subagents, each spawned by exactly one skill above
 .agents/
-  skills/          25 skills — THE NEUTRAL LAYER. Read by Gemini, by VS Code Copilot,
+  skills/          26 skills — THE NEUTRAL LAYER. Read by Gemini, by VS Code Copilot,
                     and by Codex alike (the cross-vendor agentskills.io convention):
                     the same lifecycle, plus one persona skill per Claude subagent
 .codestream/
@@ -149,7 +149,7 @@ scripts/           check-framework.py — template-repo integrity check (not cop
                      CRITIC_REPORT.md, VERIFICATION_REPORT.md, STEERING_LOG.md, STATE_HISTORY.md)
 ```
 
-### The 15 Claude Code skills
+### The 16 Claude Code skills
 
 | Skill | Spawns | Purpose |
 |---|---|---|
@@ -168,6 +168,7 @@ scripts/           check-framework.py — template-repo integrity check (not cop
 | `log` | — | Triages bugs into `BUGS.md`, features into `FEATURES.md`. |
 | `extract-template` | — | Pushes framework improvements upstream to this template repo. |
 | `repo-ingest` | — | Evaluates an external repo or document (PDF) against this project: what to adopt (and as which gate), what's already covered, what to avoid. PDF sources are converted with opendataloader-pdf first. |
+| `document-ingest` | — | Acquires a document (PDF), converts it with opendataloader-pdf, and files it under `.codestream/documents/` as reference material for future agents. |
 
 ### The 11 Claude Code subagents
 
@@ -205,7 +206,7 @@ The `.codestream/`-gated lifecycle is identical regardless of who runs it. What 
 | `product-strategist` | `product_strategist` |
 | *(none — `researcher`'s job stays inline in `research`)* | *(none)* |
 
-Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`, `repo-ingest`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
+Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`, `repo-ingest`, `document-ingest`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
 **Adding a tool changes no rule.** An agent participates by reading one shared `.codestream/`, declaring its own agent id in the directive file its host auto-loads, and using skills from `.agents/skills/` — the neutral layer. Nothing in the rule text enumerates agents: rule 11's `agent` field is a self-declared alias, and rule 10's pre-flight compares it against **your own** id rather than against a list. So a fourth directive costs two things — the file itself, and one entry in `DIRECTIVES` in `scripts/check-framework.py` so the mirror contract covers it.
 
