@@ -1,7 +1,7 @@
 name: Framework integrity
 
 # Guards the invariants no single-file edit can guarantee:
-#   * the three rule mirrors agree (rule 13 — HARD_RULES.md is canonical)
+#   * the three rule mirrors agree (HARD_RULES.md is canonical — see its preamble note)
 #   * every Claude skill / subagent has its Gemini counterpart
 #   * STATE.json parses as real JSON and the template's own runtime state is
 #     still pristine (rule 22 — the template must not accumulate project state)

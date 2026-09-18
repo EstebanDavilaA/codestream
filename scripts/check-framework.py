@@ -4,8 +4,8 @@
 Verifies the invariants that no single-file edit can guarantee on its own:
 
   1. protected framework paths exist
-  2. the three rule mirrors agree (HARD_RULES.md is canonical, rule 13's
-     "if the three ever disagree, this file wins" invariant)
+  2. the three rule mirrors agree (HARD_RULES.md is canonical — see its
+     preamble note: "if any copy disagrees, this file wins")
   3. every Claude skill has a Gemini counterpart
   4. every Claude subagent has its documented persona counterpart
   5. STATE.json is valid UTF-8, BOM-free, and parses as real JSON

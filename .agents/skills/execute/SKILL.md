@@ -13,5 +13,7 @@ description: Use after a feature spec has been approved with SPEC_APPROVED. Runs
 2. Build the vertical slice end to end (not layer-by-layer across unrelated milestones), write its own test suite, and run Layer 1 (tests + typecheck + build + lint, rule 13).
 3. On completion, **halt** — do not auto-chain into `/verify` or `audit_critic` (rule 15). Report Layer 1's results and tell the user `/steer` is next; it runs the critic audit and regression pass itself, in a fresh context, before presenting the steering checkpoint.
 
+If Layer 1 fails, do not proceed — route through `/diagnose` before any fix (rule 4); do not advance to `/steer` until it is clean.
+
 ## Note
 This is the layer where premature code generation historically happens without spec discipline. The gate that prevents it lives in `/plan`, not here — by the time `/execute` runs, scope is supposed to already be locked. If the executor finds the spec is ambiguous or insufficient mid-build, stop and route to `/diagnose` rather than improvising.

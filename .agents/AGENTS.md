@@ -9,7 +9,7 @@ Note that `.agents/skills/` is the framework's **neutral** skill layer — it is
 ## Protected paths — never delete or overwrite
 `CLAUDE.md`, `.claude/`, `.agents/` (this directory), `.github/copilot-instructions.md`, and `.codestream/` are the framework itself, not project output. No skill, persona, or scaffolding step — including `/prototype` and its `prototype_fast` persona — may delete, move, mass-overwrite, or wipe these paths under any circumstance, including "clean slate" project scaffolding or template initializers. If a scaffolding tool would normally wipe the target directory, scaffold in a temp directory and copy only the app files in. If these paths ever go missing, stop and tell the user immediately rather than proceeding.
 
-**Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. On 2026-09-17 the project was renamed from SLIPSTREAM to CODESTREAM, renaming `.slipstream/` to `.codestream/` via explicit user instruction, immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
+**Historical exception**: the 2026-09-08 `.gsd/` → `.slipstream/` rename and the 2026-09-17 `.slipstream/` → `.codestream/` rename were deliberate, explicit, user-directed `git mv`s run by the user themselves, each immediately followed by a full reference rewrite across every framework file. They are not a precedent: the rule above still blocks any skill, subagent, or scaffolding step from renaming, moving, or wiping these paths on its own.
 
 ## Entry Point
 Start with `/onboard`. It routes to:
@@ -38,7 +38,7 @@ Start with `/onboard`. It routes to:
 5. `/steer` is a mandatory halt. Never auto-advance *past* it, even when the next step seems obvious — but see rule 15: the halt happens *at* the checkpoint, not before reaching it.
 6. **Strict alternation rule**: `.codestream/` state is shared between assistants. Only one operates on the active phase at a time; check `.codestream/STATE.json` before starting a session — see rule 10 for what "check" concretely means.
 7. **Lightweight-task exception**: a small, self-contained edit (numeric/config tweaks, single-file fixes, doc/log corrections) that introduces no new user-visible capability skips the spec/execute/verify/steer ceremony entirely — no spec, no critic, no steering log update. Just make the edit and confirm it with the user. If a "small" change turns out to touch multiple files, cross a milestone boundary, or introduce new behavior, stop and route it back into the normal lifecycle instead. **Lean on this exception readily** — don't default to full ceremony for a genuinely small change just because heavier process is available.
-8. Framework paths are protected (`CLAUDE.md`, `.claude/`, `.agents/`, `.github/copilot-instructions.md`, `.codestream/`) — never deleted, moved, or mass-overwritten by any skill or scaffolding step under any circumstance. If these paths ever go missing, stop and tell the user immediately rather than proceeding. **Historical exception**: on 2026-09-08 this directory was renamed from `.gsd/` to `.slipstream/` via a deliberate, explicit, user-directed `git mv` (run by the user themselves, outside any automated scaffolding step), immediately followed by a full reference rewrite across every framework file. On 2026-09-17 the project was renamed from SLIPSTREAM to CODESTREAM, renaming `.slipstream/` to `.codestream/` via explicit user instruction, immediately followed by a full reference rewrite across every framework file. This is not a precedent for automated renames — the rule above still blocks any skill, subagent, or scaffolding step from doing this on its own.
+8. Framework paths are protected (`CLAUDE.md`, `.claude/`, `.agents/`, `.github/copilot-instructions.md`, `.codestream/`) — never deleted, moved, or mass-overwritten by any skill or scaffolding step under any circumstance. If these paths ever go missing, stop and tell the user immediately rather than proceeding. **Historical exception**: the 2026-09-08 `.gsd/` → `.slipstream/` rename and the 2026-09-17 `.slipstream/` → `.codestream/` rename were deliberate, explicit, user-directed `git mv`s run by the user themselves, each immediately followed by a full reference rewrite across every framework file. They are not a precedent: the rule above still blocks any skill, subagent, or scaffolding step from renaming, moving, or wiping these paths on its own.
 9. Milestones must be **vertical slices** (restated from rule 2 for emphasis, since horizontal-layer proposals are the single most common roadmap mistake): every milestone produces something a user can run and use, never a types-only/API-only/UI-only slice.
 
 ### 10. Cross-tool pre-flight integrity check — mandatory, hard-blocking
@@ -48,7 +48,7 @@ Start with `/onboard`. It routes to:
 Before taking **any** action in a project where `.codestream/STATE.json` already exists — not only at literal `/onboard`, but at the start of *every* session regardless of which skill is invoked first — check, in order:
 
 1. **Read `.codestream/STATE.json` in full.**
-2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and its `state` value. If it names an agent **other than your own** and does not look like a natural halt point (`state: 4` / a `/steer` checkpoint, or an explicit "AWAITING SPEC_APPROVED" / "AWAITING re-SPEC_APPROVED" halt) — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
+2. **Check the most recent `state_history` entry's `agent` field** (rule 11) and whether it records a clean halt — its step finished and it is awaiting the user or the next command (a presented `/steer` checkpoint at `state: 4`, an `/execute` completion awaiting `/steer`, a spec or roadmap awaiting approval, an explicit `AWAITING SPEC_APPROVED` / `AWAITING re-SPEC_APPROVED`). If it names an agent **other than your own** and records no such halt — **stop and tell the user plainly** before doing anything else, including read-only work. Do not guess whether the other session is "probably done."
 3. **Verify `.codestream/active/` contains at most one spec file, and that it matches `artifacts.active_spec`.** If more than one spec file exists, or the pointer doesn't match what's on disk, **stop and flag the discrepancy** rather than silently picking one or archiving the "old" one yourself.
 4. **Verify that spec file, and `STATE.json`, are valid UTF-8 text with no encoding corruption, AND that `STATE.json` parses as valid JSON** — an actual `JSON.parse` / `json.load`, not merely a successful text decode. These are independent properties: a file can be perfectly valid UTF-8 while still being structurally broken JSON, and that exact combination has shipped undetected before. Either failure is a cross-tool corruption signal and stops you.
 
@@ -88,13 +88,13 @@ Every file this framework writes or edits — feature specs, `STATE.json`, archi
 
 ### 16. Suggested division of labor (soft preference, not enforced)
 
-A documented default, not a restriction — any agent can run any step, and rules 1–15 apply identically regardless of who is doing the work.
+A documented default, not a restriction — any agent can run any step, and every other rule applies identically regardless of who is doing the work.
 
 Where more than one agent is available, split by **cost profile** rather than by tool name:
 - Give the cheap, fast agent `/steer`, state-reading and roadmap/bug triage (`/log`), and lightweight-task-exception repairs (rule 7). Fast turnaround suits this class of work.
 - Give the strongest available model `/plan`, `/execute`, and `/steer`'s critic layer for larger multi-file work. The critic especially belongs on the strongest model the project can afford — its entire job is catching what a weaker pass would miss, so cheaping out on it defeats rule 3's premise.
 
-This is a default lean for deciding which agent to open, not a hard boundary, and it never relaxes rules 1–15. Name the agents filling each role per project, or delete this rule entirely if only one agent is in play.
+This is a default lean for deciding which agent to open, not a hard boundary, and it never relaxes any other rule. Name the agents filling each role per project, or delete this rule entirely if only one agent is in play.
 
 ### 17. `STATE.json` is edited structurally, never by raw text paste
 
@@ -102,7 +102,7 @@ Any change to `STATE.json` (or any other framework JSON file) is made by reading
 
 ### 18. Log every lifecycle step to `state_history` as it happens, not in a retroactive batch
 
-Every `/plan` draft, every `SPEC_APPROVED` (or re-`SPEC_APPROVED`), every `/execute` completion, every individual `/verify` layer result, and every `/steer` decision gets its own `state_history` entry appended **before moving on to the next step** — including multiple steps completed within one continuous session. Do not defer logging until the session's end, and do not compress several distinct lifecycle steps into a single summary entry written after the fact. An entry written after the work is unverifiable narrative; an entry written as each step completes is the actual audit trail rule 10's pre-flight check depends on.
+Every `/plan` draft, every `SPEC_APPROVED` (or re-`SPEC_APPROVED`), every `/execute` completion, every `/verify` recheck, and every `/steer` decision gets its own `state_history` entry appended **before moving on to the next step** — including multiple steps completed within one continuous session. Do not defer logging until the session's end, and do not compress several distinct lifecycle steps into a single summary entry written after the fact. A halting step records what it awaits (`AWAITING SPEC_APPROVED`, `AWAITING /steer`, and the like), so rule 10's pre-flight can tell a clean halt from an interrupted session. An entry written after the work is unverifiable narrative; an entry written as each step completes is the actual audit trail rule 10's pre-flight check depends on.
 
 ### 19. A critic-report citation must point at an entry that already exists
 
@@ -158,7 +158,7 @@ A file that was correct when written is not evidence it is correct when read. Th
 
 Partial reading is the same failure one step earlier. A referenced file that was skimmed, summarised, or never opened has not been read — and a binding clause inside it cannot honestly be called honoured or verified. The critic persona's step 2c-ii is this rule applied to a claim's input domain: an AC that spot-checks ordinary values has not established an absolute claim about the whole domain.
 
-This is conduct, not state — no checker can confirm it. Its enforcement is that every verification step in this framework opens by reading its inputs from disk, which rule 10 already demonstrates for one file.
+This is conduct, not state — no checker can confirm it. Its enforcement is that every verification step in this framework opens by reading its inputs from disk.
 
 ---
 

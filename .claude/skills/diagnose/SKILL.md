@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: Use whenever a bug, wrong behavior, or critic FAIL is found — either during /verify or discovered later while using the app. Determines root cause before any fix is attempted, so patches don't just produce a differently-broken version of the same problem.
+description: Use whenever a bug, wrong behavior, or verification failure is found — at any verification gate, or discovered later while using the app. Determines root cause before any fix is attempted, so patches don't just produce a differently-broken version of the same problem.
 ---
 
 # Diagnose: Find the Real Root Cause Before Fixing Anything

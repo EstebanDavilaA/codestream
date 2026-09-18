@@ -1,6 +1,6 @@
 ---
 name: log
-description: Log, track, and structure bug reports into .codestream/BUGS.md and feature requests into .codestream/FEATURES.md via /log. Auto-classifies inputs, tracks lifecycle status, and routes items to /diagnose, /plan, or roadmap sequencing. Ported from Antigravity/Gemini's identical skill so either tool triages logs the same way (.codestream/HARD_RULES.md rule 16).
+description: Log, track, and structure bug reports into .codestream/BUGS.md and feature requests into .codestream/FEATURES.md via /log. Auto-classifies inputs, tracks lifecycle status, and routes items to /diagnose, /plan, or roadmap sequencing. Ported from the Antigravity/Gemini-side skill so either tool triages logs the same way.
 ---
 
 # Unified Logger: Log and Categorize Bugs & Features
@@ -54,6 +54,6 @@ description: Log, track, and structure bug reports into .codestream/BUGS.md and 
    - `SCHEDULED_MILESTONE (Milestone X)`: Added to `.codestream/ROADMAP.md` during `/roadmap_slices` or `/discover`.
    - `IN_PLANNING`: Included in an active feature spec in `/plan`.
    - `IN_EXECUTION`: Underway in `/execute`.
-   - `CLOSED`: Verified complete by `/verify` and archived during `/steer`.
+   - `CLOSED`: Verified complete by the Layer 2 audit and archived during `/steer`.
 
 4. **User Communication**: Present structured summary and routing diagnosis to the user.

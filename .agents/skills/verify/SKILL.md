@@ -12,7 +12,7 @@ Run the test suite, typecheck, build, and lint — all four, every time, each re
 
 ## Verdict logic
 - All four clear → tell the user Layer 1 is green and that `/steer` is next (it runs `audit_critic` and the regression pass itself before presenting the checkpoint).
-- Any gate fails → do not proceed to `/steer`. Hand back to `execute_feature` with the specific failure.
+- Any gate fails → do not proceed to `/steer`. Route through `/diagnose` before any fix (rule 4) — the cause decides whether it returns to `/execute` or goes up to `/plan`.
 
 ## Note
 Layer 2 (independent `audit_critic` pass) and Layer 3 (cross-milestone regression) are no longer part of this skill — they run inside `/steer`, in a fresh context, right before the steering checkpoint is presented. This keeps the expensive critic pass decoupled from the executor's context and under explicit user control (rule 15).

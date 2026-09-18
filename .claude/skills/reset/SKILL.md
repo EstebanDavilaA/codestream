@@ -24,7 +24,7 @@ description: Use when implementation or refactoring breaks too many features or 
    - Realign `.codestream/STATE.json`, `.codestream/ROADMAP.md`, and `.codestream/active/` so CODESTREAM runtime state strictly matches the restored code baseline.
 
 4. **Post-Reset Baseline Verification:**
-   - Run full project build and unit test suite (`npm test`).
+   - Run the full project build and test suite using the project's real commands (rule 13).
    - Confirm 100% pass rate on the restored baseline.
 
 5. **Route Next Action:**
