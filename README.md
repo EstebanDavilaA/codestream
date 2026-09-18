@@ -84,7 +84,7 @@ Unlike the hard rules, these aren't things an agent inside the framework can che
 
 ## Maintaining this template
 
-This repository is the framework's own source, not a project built with it. Three guards keep those two roles from blurring.
+This repository is the framework's own source, not a project built with it. Two guards keep those two roles from blurring.
 
 **Rule 22 — the template refuses to run its own lifecycle.** A `.codestream-template` marker at the repo root makes `/onboard`, and the rule 10 pre-flight that gates every session, abort before asking anything. Every runtime file under `.codestream/` is tracked by git, so running even one feature through `/execute` and `/steer` here would write real project content into `STATE.json`, `BUGS.md`, `FEATURES.md`, `DISCOVERY.md`, `ROADMAP.md`, `documents/**`, and the append-only archive logs — content that then ships inside every future project that copies the template. Because rule 12 makes the archive logs append-only, the mistake is also expensive to unwind afterwards. The marker sits at the repo root rather than inside `.codestream/` precisely so that adoption (which copies `.codestream/` wholesale) does not carry it downstream; it is deliberately absent from the copy list above.
 
@@ -94,9 +94,8 @@ This repository is the framework's own source, not a project built with it. Thre
 |---|---|
 | template marker present | rule 22's guard is actually armed |
 | protected paths exist | no framework path has gone missing (rule 8) |
-| rule mirror agrees | the three directive copies carry the same rule numbers as the canonical file (the canonical-source note in `HARD_RULES.md`) |
+| rule mirror agrees | all four directive copies carry the same rule numbers and headed-rule titles (the canonical-source note in `HARD_RULES.md`) |
 | headed rule titles match | a renamed rule didn't land in only one copy |
-| directive rules generated | every directive's rule section is byte-identical to what `scripts/render-directives.py` renders from `.codestream/HARD_RULES.md` — a hand-edit inside the RULES markers fails here, so the copies cannot silently diverge |
 | directive agent ids distinct | each directive declares exactly one agent id, and no two claim the same (rule 11) |
 | skill mirror agrees | every `.claude/skills/*/SKILL.md` has its `.agents/skills/*/SKILL.md` counterpart |
 | subagent/persona mirror agrees | every `.claude/agents/*.md` has its documented Gemini persona, or is the documented exception |
@@ -112,10 +111,6 @@ python3 scripts/check-framework.py   # exit 0 = clean, exit 1 = blocker
 
 `.github/workflows/framework-integrity.yml` runs the same check on every push and pull request. Neither `scripts/` nor `.github/workflows/` is part of the adoption copy list — downstream projects do not need them. Note that `.github/copilot-instructions.md` **is** adopted; only the workflow directory is not.
 
-**`scripts/render-directives.py` — the rule mirror is generated.** The 24 rules used to be hand-mirrored into three directive files, with a parity check that could only compare rule numbers and headed titles. Bodies were free to drift, and they did: 19 of 24 differed between the canonical file and the directive copies, invisibly, for an unknown number of sessions. Each directive's rule section is now rendered from `.codestream/HARD_RULES.md` between `<!-- GENERATED:rules -->` markers, so the drift is impossible rather than merely detectable — and a hand-edit inside those markers fails the check above.
-
-That leaves **one** authored copy of the rules, not four. Only the `## Hard rules` section is rendered; the canonical-source note and the "Why these rules exist" table above it stay in `.codestream/HARD_RULES.md`, because they are addressed to whoever is maintaining or weakening a rule rather than to an agent mid-task, and do not need to pay context rent in every session. The single per-tool value — rule 11's agent id — is injected by the renderer, so adding a tool means adding its directive to both scripts' tables and nothing else.
-
 Framework changes land on a branch in this repo. Anything that changes agent *behaviour* — a new gate, a new spec section, a reworded skill — should be proven in a throwaway downstream project first, then pushed back here with `/extract-template`, so future projects inherit the version that was actually tested rather than the version that merely looked right.
 
 ---
@@ -128,10 +123,7 @@ CLAUDE.md          Claude Code directives — auto-loaded, embeds a full copy of
 .github/copilot-instructions.md  VS Code Copilot directives — likewise
                    (every directive declares its own agent id; the rules never enumerate tools)
 .codestream-template  marker: this repo is the framework's own source, not a project (rule 22)
-scripts/           template-repo tooling — none of it is copied downstream:
-                   check-framework.py — the integrity check
-                   render-directives.py — renders the rules section of
-                     .codestream/HARD_RULES.md into every directive
+scripts/           check-framework.py — template-repo integrity check (not copied downstream)
 .github/workflows/ framework-integrity.yml — runs the check on every push and PR
 .claude/
   skills/          15 skills: 13 lifecycle commands + /extract-template + /repo-ingest
@@ -214,7 +206,7 @@ The `.codestream/`-gated lifecycle is identical regardless of who runs it. What 
 
 Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
-**Adding a tool changes no rule.** An agent participates by reading one shared `.codestream/`, declaring its own agent id in the directive file its host auto-loads, and using skills from `.agents/skills/` — the neutral layer. Nothing in the rule text enumerates agents: rule 11's `agent` field is a self-declared alias, and rule 10's pre-flight compares it against **your own** id rather than against a list. So a fourth directive costs three things — the file itself, an entry in `DIRECTIVES` in `scripts/render-directives.py` (which renders the shared rule section into it), and an entry in `DIRECTIVES` in `scripts/check-framework.py` so the mirror contract covers it.
+**Adding a tool changes no rule.** An agent participates by reading one shared `.codestream/`, declaring its own agent id in the directive file its host auto-loads, and using skills from `.agents/skills/` — the neutral layer. Nothing in the rule text enumerates agents: rule 11's `agent` field is a self-declared alias, and rule 10's pre-flight compares it against **your own** id rather than against a list. So a fourth directive costs two things — the file itself, and one entry in `DIRECTIVES` in `scripts/check-framework.py` so the mirror contract covers it.
 
 ---
 
