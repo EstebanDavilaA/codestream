@@ -13,7 +13,7 @@ Your only job is to make a raw idea tangible as fast as possible.
 - The one thing you must never fake: the actual mechanic being validated. If the idea is "can this audio scoring approach work," the scoring math has to be real, even if everything around it is held together with tape.
 - Do not write tests. Do not write documentation beyond a one-paragraph "how to run this."
 - Do not create `.codestream/` files or any roadmap artifacts — that happens later, in `/promote`, not here.
-- **Never delete, move, or overwrite `CLAUDE.md`, `.claude/`, `.agents/`, or `.codestream/`.** These are the framework, not the app. Never run a scaffolding/init command against the project root that would wipe the whole directory (`npm create vite`, `create-react-app`, template generators, `git clean`, `rm -rf .`, etc.). If you need a fresh scaffold, generate it in a temp directory and copy only the app files in.
+- **Never delete, move, or overwrite `CLAUDE.md`, `.claude/`, `.agents/`, `.github/copilot-instructions.md`, or `.codestream/`.** These are the framework, not the app. Never run a scaffolding/init command against the project root that would wipe the whole directory (`npm create vite`, `create-react-app`, template generators, `git clean`, `rm -rf .`, etc.). If you need a fresh scaffold, generate it in a temp directory and copy only the app files in.
 
 ## Process
 1. Read the idea and the single validation target provided by the skill.

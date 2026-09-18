@@ -64,8 +64,8 @@ If the user asks to extract something outside this default scope (e.g. a specifi
 
 5. **Present the summary before writing anything.** Group by file, one line per candidate change:
    ```
-   UPDATE  .codestream/HARD_RULES.md         — adds rules 16–21 (generic, no scrubbing needed)
-   ADD     .claude/skills/log/SKILL.md — new skill, ported from Gemini side per rule 16
+   UPDATE  .codestream/HARD_RULES.md         — adds new hard rules (generic, no scrubbing needed)
+   ADD     .claude/skills/log/SKILL.md — new skill, ported from the Gemini-side layer
    STRUCTURAL .agents/workflows/*.md → .agents/skills/*/SKILL.md — project retired workflows/ in favor of skills/; template still has both
    SKIP    CLAUDE.md "Project-specific context" section — project-specific, not propagated
    ```

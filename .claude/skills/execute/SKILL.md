@@ -18,4 +18,4 @@ description: Use after a feature spec has been approved with SPEC_APPROVED. Runs
 ## Note
 This is the layer where premature code generation historically happens without spec discipline. The gate that prevents it lives in `/plan`, not here — by the time `/execute` runs, scope is supposed to already be locked. If the executor finds the spec is ambiguous or insufficient mid-build, stop and route to `/diagnose` rather than improvising.
 
-If Layer 1 fails, do not proceed — hand back to `executor` with the failure and stay in `/execute`; do not involve `/steer` or `critic` until Layer 1 is clean.
+If Layer 1 fails, do not proceed — route through `/diagnose` before any fix (rule 4); do not involve `/steer` or `critic` until Layer 1 is clean.

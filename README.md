@@ -149,7 +149,7 @@ scripts/           check-framework.py — template-repo integrity check (not cop
                      CRITIC_REPORT.md, VERIFICATION_REPORT.md, STEERING_LOG.md, STATE_HISTORY.md)
 ```
 
-### The 14 Claude Code skills
+### The 15 Claude Code skills
 
 | Skill | Spawns | Purpose |
 |---|---|---|
@@ -167,6 +167,7 @@ scripts/           check-framework.py — template-repo integrity check (not cop
 | `research` | `researcher`, or `product-strategist` for commercial queries | Feasibility, trade-offs, or market/monetization investigation. |
 | `log` | — | Triages bugs into `BUGS.md`, features into `FEATURES.md`. |
 | `extract-template` | — | Pushes framework improvements upstream to this template repo. |
+| `repo-ingest` | — | Evaluates an external repo against this project: what to adopt (and as which gate), what's already covered, what to avoid. |
 
 ### The 11 Claude Code subagents
 
@@ -204,7 +205,7 @@ The `.codestream/`-gated lifecycle is identical regardless of who runs it. What 
 | `product-strategist` | `product_strategist` |
 | *(none — `researcher`'s job stays inline in `research`)* | *(none)* |
 
-Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
+Everything else (`onboard`, `diagnose`, `verify`, `log`, `extract-template`, `repo-ingest`) is self-contained on both sides — no dedicated persona, because the orchestrating skill *is* the whole job. Earlier versions of this framework also shipped `.agents/workflows/*.md` — one-line slash-command stubs that just forwarded `/command $ARGUMENTS` into the matching skill. Antigravity now discovers skills directly, so `workflows/` has been retired; if you're porting an old project forward, deleting its `workflows/` files once the equivalent `.agents/skills/` file exists is a safe, no-op structural cleanup.
 
 **Adding a tool changes no rule.** An agent participates by reading one shared `.codestream/`, declaring its own agent id in the directive file its host auto-loads, and using skills from `.agents/skills/` — the neutral layer. Nothing in the rule text enumerates agents: rule 11's `agent` field is a self-declared alias, and rule 10's pre-flight compares it against **your own** id rather than against a list. So a fourth directive costs two things — the file itself, and one entry in `DIRECTIVES` in `scripts/check-framework.py` so the mirror contract covers it.
 
@@ -327,7 +328,7 @@ If you run more than one assistant against one `.codestream/`, rule 6's strict a
 
 ## The one thing not to do
 
-Do not weaken a hard rule in the moment because it feels like overhead on this particular change. `.codestream/HARD_RULES.md` opens with a section explaining what each rule cost before it existed — silent state corruption that passed every check, verification theater that reported PASS on a build that did not compile, audit trails written retroactively as narrative. Read that section before deciding a rule does not apply to you. If a rule genuinely doesn't fit your project, change it deliberately in `HARD_RULES.md` and mirror it into both directive files in the same sitting — that is a supported edit. Skipping it quietly is not.
+Do not weaken a hard rule in the moment because it feels like overhead on this particular change. `.codestream/HARD_RULES.md` opens with a section explaining what each rule cost before it existed — silent state corruption that passed every check, verification theater that reported PASS on a build that did not compile, audit trails written retroactively as narrative. Read that section before deciding a rule does not apply to you. If a rule genuinely doesn't fit your project, change it deliberately in `HARD_RULES.md` and mirror it into all three directive files in the same sitting — that is a supported edit. Skipping it quietly is not.
 
 ---
 
