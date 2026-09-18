@@ -4,14 +4,16 @@
 Verifies the invariants that no single-file edit can guarantee on its own:
 
   1. protected framework paths exist
-  2. the three rule mirrors agree (HARD_RULES.md is canonical, rule 13's
-     "if the three ever disagree, this file wins" invariant)
-  3. every Claude skill has a Gemini counterpart
-  4. every Claude subagent has its documented persona counterpart
-  5. STATE.json is valid UTF-8, BOM-free, and parses as real JSON
+  2. the three rule mirrors agree (HARD_RULES.md is canonical, the
+     "if the copies ever disagree, this file wins" invariant)
+  3. the directive rule sections are generated, not hand-edited
+     (.codestream/HARD_RULES.md -> scripts/render-directives.py)
+  4. every Claude skill has a Gemini counterpart
+  5. every Claude subagent has its documented persona counterpart
+  6. STATE.json is valid UTF-8, BOM-free, and parses as real JSON
      (rule 10 point 4 / rule 17)
-  6. this repo's own runtime state is still pristine (rule 22)
-  7. no framework file carries a UTF-8 BOM (rule 14)
+  7. this repo's own runtime state is still pristine (rule 22)
+  8. no framework file carries a UTF-8 BOM (rule 14)
 
 Template-repo tooling: this script is NOT part of the adoption copy list and
 should not be copied into downstream projects.
@@ -24,6 +26,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -156,6 +159,7 @@ RULE_HEAD = re.compile(r"^#{2,3}\s+(\d+)\.\s*(.*)$")
 RULE_ITEM = re.compile(r"^(\d+)\.\s+(.*)$")
 HARD_RULES_HEADING = re.compile(r"^##\s+.*hard rules", re.IGNORECASE)
 SECTION_HEADING = re.compile(r"^##\s+")
+RULES_END_MARKER = "<!-- /GENERATED:rules -->"
 
 
 def parse_rules(path: Path) -> tuple[dict[int, str], dict[int, str]]:
@@ -178,6 +182,12 @@ def parse_rules(path: Path) -> tuple[dict[int, str], dict[int, str]]:
         if in_rules and SECTION_HEADING.match(line):
             break
         if not in_rules:
+            continue
+        if line.startswith(RULES_END_MARKER):
+            # End of the generated region. Anything after it — a directive's own
+            # tool-specific addendum — is directive-local, not part of the shared
+            # rule text, so it must not register as rule-body drift.
+            current = None
             continue
         head = RULE_HEAD.match(line)
         if head:
@@ -237,8 +247,10 @@ def check_rule_mirror() -> None:
     else:
         record("PASS", "headed rule titles match")
 
-    # Body drift is informational: the directive copies are legitimately
-    # compressed relative to the canonical file.
+    # Body drift is informational: the directive copies are rendered verbatim
+    # from .codestream/HARD_RULES.md, with rule 11's agent id injected — so that
+    # single injection is the only difference this should ever report. What must
+    # match exactly is enforced by check_directive_render().
     drift = []
     for number in sorted(canonical_numbers):
         bodies = {
@@ -253,8 +265,9 @@ def check_rule_mirror() -> None:
             "WARN",
             "rule body text identical",
             f"{len(drift)}/{len(canonical_numbers)} rule(s) differ in wording —"
-            f" expected between the canonical file and the compressed directive"
-            f" copies: {shown}{more}",
+            f" expected: the directive copies are rendered from"
+            f" `.codestream/HARD_RULES.md`, and rule 11's body additionally carries"
+            f" the injected agent id: {shown}{more}",
         )
     else:
         record("PASS", "rule body text identical")
@@ -450,6 +463,44 @@ def check_bom() -> None:
         record("PASS", "no UTF-8 BOM in framework files", f"{scanned} files scanned")
 
 
+# ------------------------------------- 2c. directive sections are generated
+RENDER_SCRIPT = Path("scripts/render-directives.py")
+
+
+def check_directive_render() -> None:
+    """The directive rule sections are generated from one template.
+
+    Before this existed, the same 24 rules lived in four hand-maintained
+    copies, and the mirror check above could only compare rule numbers and
+    headed titles — bodies were free to drift, and 20 of 24 had. Rendering
+    from a single template makes that drift impossible rather than merely
+    detectable; this gate is what makes the rendering authoritative. A
+    hand-edit inside the RULES markers, or a template change nobody
+    re-rendered, fails here instead of shipping to one tool and not the
+    others.
+    """
+    script = REPO / RENDER_SCRIPT
+    if not script.is_file():
+        record("FAIL", "directive rules generated", f"{RENDER_SCRIPT} missing")
+        return
+
+    proc = subprocess.run(
+        [sys.executable, str(script), "--check"],
+        cwd=REPO,
+        capture_output=True,
+        text=True,
+    )
+    detail = " ".join((proc.stdout + proc.stderr).split())
+    if proc.returncode == 0:
+        record("PASS", "directive rules generated", detail or "copies match")
+    else:
+        record(
+            "FAIL",
+            "directive rules generated",
+            detail or f"run python3 {RENDER_SCRIPT}",
+        )
+
+
 def main() -> int:
     print("CODESTREAM framework integrity check")
     print(f"  repo: {REPO}\n")
@@ -458,6 +509,7 @@ def main() -> int:
     check_protected_paths()
     check_agent_ids()
     check_rule_mirror()
+    check_directive_render()
     check_skill_mirror()
     check_persona_mirror()
     data = check_state_json()
@@ -475,7 +527,7 @@ def main() -> int:
         f"{len(warned)} warned, {len(failed)} failed"
     )
     if failed:
-        print("\n  Rule 22 / rule 13 / rule 14 blockers — fix before merging.")
+        print("\n  Fix the blockers above before merging.")
     return 1 if failed else 0
 
 
