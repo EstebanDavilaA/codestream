@@ -167,8 +167,8 @@ scripts/           check-framework.py — template-repo integrity check (not cop
 | `research` | `researcher`, or `product-strategist` for commercial queries | Feasibility, trade-offs, or market/monetization investigation. |
 | `log` | — | Triages bugs into `BUGS.md`, features into `FEATURES.md`. |
 | `extract-template` | — | Pushes framework improvements upstream to this template repo. |
-| `repo-ingest` | — | Evaluates an external repo or document (PDF) against this project: what to adopt (and as which gate), what's already covered, what to avoid. PDF sources are converted with opendataloader-pdf first. |
-| `document-ingest` | — | Acquires a document (PDF), converts it with opendataloader-pdf, and files it under `.codestream/documents/` as reference material for future agents. |
+| `repo-ingest` | — | Evaluates an external repo against this project: what to adopt (and as which gate), what's already covered, what to avoid. |
+| `document-ingest` | — | Evaluates an external document (PDF) against this project — `repo-ingest`'s process for document sources: what to adopt (and as which gate), what's already covered, what to avoid. Acquires and converts the document with opendataloader-pdf first. |
 
 ### The 11 Claude Code subagents
 

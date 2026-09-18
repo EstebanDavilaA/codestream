@@ -1,13 +1,13 @@
 ---
 name: repo_ingest
-description: Use when the user supplies an external repo (GitHub URL or local path), or a document to mine for ideas (a PDF, including an auth-walled link to one), to evaluate against this project — what it actually does, what is worth adopting and as which gate or artifact, what this project already does, and what to avoid. Triggered by /repo-ingest, or by a pasted repo/document URL alongside "compare this to our template".
+description: Use when the user supplies an external repo (GitHub URL or local path) to evaluate against this project — what it actually does, what is worth adopting and as which gate or artifact, what this project already does, and what to avoid. For document sources (PDFs), use /document-ingest instead — the same process for document inputs. Triggered by /repo-ingest, or by a pasted repo URL alongside "compare this to our template".
 ---
 
-# Repo Ingest — evaluate an external repo or document against this project
+# Repo Ingest — evaluate an external repo against this project
 
-The user hands over external material — usually a repo, sometimes a document (a PDF) — one at a
-time. Your job is not to summarise it. It is to decide what, if anything, this project should take
-from it.
+The user hands over a repo, one at a time. Your job is not to summarise it. It is to decide what,
+if anything, this project should take from it. (For a document — a PDF — use `/document-ingest`;
+it applies this same process to document sources.)
 
 ## The filter that decides everything
 
@@ -27,13 +27,9 @@ rather than describing the idea glowingly.
    "already covered" without knowing what is there. Read from disk, in full (rule 24).
    If `.codestream/` does not exist, this project has not been onboarded — say so and stop.
 
-2. **Read the source.** Establish what it actually does — its mechanism, not what its README claims.
-   Cite file paths for every claim you make about it.
-   If the source is a document (PDF) rather than a repo: it must first be made readable —
-   `/document-ingest` owns acquiring and converting documents (and files the ones that are kept).
-   Read the converted Markdown from disk — cite sections and page numbers the way file paths are
-   cited — then apply this skill's process to what you read. Never evaluate a document you could
-   not actually read (rule 24).
+2. **Read the repo.** Establish what it actually does — its mechanism, not what its README claims.
+   Cite file paths for every claim you make about it. If the source is a document (PDF) rather
+   than a repo, stop — that is `/document-ingest`'s job, not this skill's.
 
 3. **Verify every gap you are about to claim.** Before saying this project lacks something, grep
    for it. A remembered or stale measurement is how a review produces a confident wrong finding.
@@ -57,8 +53,8 @@ rather than describing the idea glowingly.
 
 ## Rules
 
-- **Evidence, not impressions.** Cite paths for a repo, sections/pages for a document — for the
-  source's claims and for this project's alike. Never claim a gap you have not grepped for.
+- **Evidence, not impressions.** Cite paths, both for the repo's claims and for this project's.
+  Never claim a gap you have not grepped for.
 - **Flag provenance.** Anything that would change agent behaviour is labelled *dogfood-validated*
   (exercised by a run) or *derived-from-evidence* (reasoned from an observed failure). Nothing
   silently reads as tested.
