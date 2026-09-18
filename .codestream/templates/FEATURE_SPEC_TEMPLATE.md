@@ -25,10 +25,14 @@ The constraint rule applies to all three constraint subsections, not only Norms.
 - **Transition Mechanics**: [e.g. Animated fast lerp vs same-frame teleport, exact thresholds and lerp factors]
 
 ### Norms (Binding)
-The coding standards and patterns this phase must follow, resolved to concrete statements rather than a pointer to a generic style guide. Cite the existing code that establishes each norm — "follow the convention" has no referent until you name the file it lives in.
+The coding standards and patterns this phase must follow, resolved to concrete statements rather than a pointer to a generic style guide. Cite the existing code or pattern archetype that establishes each norm — "follow the convention" has no referent until you name the file it lives in. For architectural abstractions (Strategy, Port/Adapter, State Machine, Factory, Pub-Sub, Middleware, Composite), evaluate fit against `.codestream/templates/DESIGN_PATTERNS.md` and declare the interface contract and prohibited anti-pattern. For phases that render or update user-facing UI, evaluate fit against `.codestream/templates/UX_HEURISTICS.md` and declare the load-bearing heuristics, not all of them by default.
 
 - **[Norm]**: [e.g. "constructor injection only — no field injection. Precedent: `FooService`, `BarService`."]
 - **[Norm]**: [e.g. "all DB access goes through the repository layer; services never call the client directly."]
+- **[Norm / Pattern]**: [e.g. "Strategy pattern for pricing rules; concrete variants must not access DB or HTTP context directly. Precedent: `.codestream/templates/DESIGN_PATTERNS.md#strategy` and `FooService`."]
+- **[Norm / Port]**: [e.g. "Port/Adapter: all external API / DB access goes through domain-owned interface; services never instantiate client drivers directly. Precedent: `.codestream/templates/DESIGN_PATTERNS.md#port-adapter`."]
+- **[Norm / UX]**: [e.g. "Async mutations show a loading state within 100ms and a success/error confirmation on completion; trigger control disabled while pending. Precedent: `.codestream/templates/UX_HEURISTICS.md#1-visibility-of-system-status`."]
+- **[Norm]**: [e.g. "constructor injection only — no field injection or global singletons. Precedent: `BarService`."]
 - **[Norm]**: [Naming, error shape, module boundary, or anything else this phase must not improvise.]
 
 **Every norm must have at least one row in the Acceptance Criteria matrix below** (test type `Lint`, `Structure`, or `Convention`). A norm with no AC is decoration, and `critic` (Layer 2) treats an unverifiable norm as a finding in its own right rather than passing it. If a norm genuinely cannot be checked mechanically, say so explicitly here — `critic` will then judge it against its stated intent instead of a test.
@@ -86,7 +90,7 @@ This section exists to shrink the implementation's "creative area" as much as th
 | AC-10 | Invariant Preservation | Integration Test | Unrelated features/windows remain unaffected |
 | AC-11 | Scope Guardrail | Verification | `git diff --name-only` confirms specified files are untouched |
 
-Allowed `Test Type` values: `Unit Test`, `Integration Test`, `Lint`, `Structure`, `Convention`, `Measured`, `Verification`. `Verification` means a manual but reproducible check — reading a diff, a screenshot, a `git diff --name-only` — rather than an automated assertion.
+Allowed `Test Type` values: `Unit Test`, `Integration Test`, `Lint`, `Structure`, `Convention`, `Measured`, `Verification`. `Structure` tests verify architectural isolation and pattern contracts (e.g. mocking an adapter/port without I/O, verifying domain imports zero infrastructure, or ensuring Open-Closed strategy extensibility). `Verification` means a manual but reproducible check — reading a diff, a screenshot, a `git diff --name-only`, or exercising a UX heuristic Norm's flow by hand — rather than an automated assertion.
 
 ---
 > **HALT GATE (STATE 2):** Present this spec to the user. Prompt: *"Review this feature specification. Reply with **SPEC_APPROVED** to begin execution, or provide feedback/adjustments."* DO NOT WRITE A SINGLE LINE OF CODE UNTIL "SPEC_APPROVED" IS RECEIVED.

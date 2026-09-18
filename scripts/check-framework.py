@@ -49,6 +49,8 @@ PROTECTED = [
     ".codestream",
     ".codestream/HARD_RULES.md",
     ".codestream/templates/FEATURE_SPEC_TEMPLATE.md",
+    ".codestream/templates/DESIGN_PATTERNS.md",
+    ".codestream/templates/UX_HEURISTICS.md",
 ]
 
 CLAUDE_SKILLS = Path(".claude/skills")
