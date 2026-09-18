@@ -179,6 +179,12 @@ def parse_rules(path: Path) -> tuple[dict[int, str], dict[int, str]]:
             break
         if not in_rules:
             continue
+        if 24 in headings and line.strip() == "---":
+            # End of the shared rules section: a tool-specific addendum follows,
+            # and it is directive-local, not shared rule text. Without this break
+            # the parser absorbs the addendum into rule 24 and reports drift that
+            # isn't there.
+            break
         head = RULE_HEAD.match(line)
         if head:
             current = int(head.group(1))
@@ -237,8 +243,12 @@ def check_rule_mirror() -> None:
     else:
         record("PASS", "headed rule titles match")
 
-    # Body drift is informational: the directive copies are legitimately
-    # compressed relative to the canonical file.
+    # Body drift is a FAILURE, not a note. The rules section is meant to be
+    # byte-identical across the canonical file and all three directive copies;
+    # tool-specific material belongs in each directive's addendum, outside the
+    # rules section. Keeping the copies equal by hand is exactly what failed
+    # before — 19 of 24 bodies had diverged, invisibly, over an unknown number
+    # of sessions — so this check is what actually keeps them equal.
     drift = []
     for number in sorted(canonical_numbers):
         bodies = {
@@ -250,11 +260,12 @@ def check_rule_mirror() -> None:
         shown = drift[:6]
         more = "" if len(drift) == len(shown) else f" (+{len(drift) - len(shown)} more)"
         record(
-            "WARN",
+            "FAIL",
             "rule body text identical",
             f"{len(drift)}/{len(canonical_numbers)} rule(s) differ in wording —"
-            f" expected between the canonical file and the compressed directive"
-            f" copies: {shown}{more}",
+            f" the copies must match `.codestream/HARD_RULES.md` exactly, with"
+            f" tool-specific material in each directive's addendum:"
+            f" {shown}{more}",
         )
     else:
         record("PASS", "rule body text identical")
