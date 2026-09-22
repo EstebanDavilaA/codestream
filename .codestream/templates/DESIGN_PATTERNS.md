@@ -195,5 +195,5 @@ Whenever a feature introduces non-trivial branching, external infrastructure dep
 > Design patterns exist to prevent tangible friction (testability failure, regression risk, combinatorial explosion).
 > - If a function has 2 stable options that never change, a simple boolean or ternary is correct — do not build a `StrategyFactory`.
 > - If code does not need mock substitution or external isolation, direct calls are correct — do not build an `Adapter` layer for internal utilities.
-> - When applying the **lightweight-task exception** ([`.codestream/HARD_RULES.md`](file:///home/eda/Dev/Workspaces/Templates/codestream/.codestream/HARD_RULES.md) Rule 7), skip pattern extraction and keep changes minimal.
+> - When applying the **lightweight-task exception** ([`.codestream/HARD_RULES.md`](../HARD_RULES.md) Rule 7), skip pattern extraction and keep changes minimal.
 

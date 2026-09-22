@@ -94,4 +94,4 @@ A `Critical` or `Major` finding routes through `/diagnose` like any other verifi
 > This file exists to catch friction that blocks or confuses users, not to enforce aesthetic taste.
 > - A phase with no user-facing UI surface (a CLI tool, a backend-only utility script, a data migration) cites nothing here — there is no interaction to audit.
 > - A `Minor` or `Advisory`-grade concern (spacing, tooltip wording, tab order) belongs in `/log` as a `FEATURE` entry, not a blocking Norm — don't force a `SPEC_APPROVED` halt over cosmetic polish.
-> - When applying the **lightweight-task exception** ([`.codestream/HARD_RULES.md`](file:///home/eda/Dev/Workspaces/Templates/codestream/.codestream/HARD_RULES.md) Rule 7), skip heuristic extraction and keep changes minimal.
+> - When applying the **lightweight-task exception** ([`.codestream/HARD_RULES.md`](../HARD_RULES.md) Rule 7), skip heuristic extraction and keep changes minimal.

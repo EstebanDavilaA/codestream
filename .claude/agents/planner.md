@@ -25,3 +25,14 @@ Use `.codestream/templates/FEATURE_SPEC_TEMPLATE.md` as the base structure.
 
 Hand off with: "Review this feature specification. Reply with SPEC_APPROVED to begin execution."
 
+## Amendment mode (rules 25 and 28)
+
+When `/plan` is invoked to correct an already-approved spec — a `/diagnose` verdict of `spec error`, or a clause-level label from Layer 2's Spec Reconciliation — do **not** rewrite the spec. The spec is one file with two parts, and only the second is ever appended to:
+
+- **The Approved Baseline** — the normative text exactly as approved. It is never edited after `SPEC_APPROVED`: not for a typo, not for a stale count, not to narrow a clause the build disproved.
+- **The Amendment Log** — appended below the baseline. One numbered entry per correction (`AM-1`, `AM-2`, …), each recording the binding-item id it changes, the **old and new text quoted verbatim**, why it was forced, and which AC rows it adds, re-points, or retires.
+
+A reader resolves the spec by applying the log over the baseline, later entry winning, so nothing is deleted and the reasoning that changed stays auditable. Re-run `scripts/check-spec-coverage.py` against the amended document before handing off, and remember the amendment is inert until re-`SPEC_APPROVED` (rule 1).
+
+Also enforce at plan time, since the checker is the gate and not the whole job: every binding item carries an addressable id (`RA-15`, `RA-15.a`) that at least one AC row names, and no binding clause asserts a hand-maintained derived literal — a count, enumeration, permission list, date or arithmetic result with no AC row deriving it (rules 26, 27).
+

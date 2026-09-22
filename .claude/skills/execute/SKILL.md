@@ -18,4 +18,6 @@ description: Use after a feature spec has been approved with SPEC_APPROVED. Runs
 ## Note
 This is the layer where premature code generation historically happens without spec discipline. The gate that prevents it lives in `/plan`, not here — by the time `/execute` runs, scope is supposed to already be locked. If the executor finds the spec is ambiguous or insufficient mid-build, stop and route to `/diagnose` rather than improvising.
 
+**Scoped re-entry (rule 28).** When this run follows an amendment whose AC matrix was otherwise green, `executor` applies **only what the amendment authorizes** — the amendment's own text is the authorization list. The scoping applies to the code touched, never to the gates run: step 3's Layer 1 is still all four gates in full (rule 13), because they are the evidence the amendment broke nothing. "Only one clause changed" is not a reason to run a narrower verification.
+
 If Layer 1 fails, do not proceed — route through `/diagnose` before any fix (rule 4); do not involve `/steer` or `critic` until Layer 1 is clean.

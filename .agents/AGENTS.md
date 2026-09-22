@@ -145,8 +145,10 @@ At `/steer`, once Layer 2 and Layer 3 are clear and **before** rule 20's archive
 
 Two constraints keep this a reconciliation rather than a rewrite:
 
-- **The archived spec's normative text is never edited.** Code does not get to redefine what was asked for. A `DEFECTIVE` or `CORRECTED` clause is fixed in the *next* phase's spec, through `/plan` — never patched in place in the archived copy.
+- **The spec's approved baseline is never edited.** Code does not get to redefine what was asked for. A `DEFECTIVE` or `CORRECTED` clause is corrected by a numbered amendment to the **current** spec — drafted through `/plan`, recorded with both the old and the new text quoted, and taking effect only on re-`SPEC_APPROVED` (rule 25). Never by silently rewriting the baseline it was approved as, and never patched in the archived copy.
 - **A `DEFECTIVE` clause must not become precedent.** It is an open item handed to `/plan` or `/log`, not a closed annotation. Recording the defect and then leaving it in the archive unaddressed is the failure this rule exists to prevent.
+
+A clause-level label's route is not a detour around the repair. `/diagnose` establishes which layer the defect belongs to (rule 4), `/plan` drafts the amendment, rule 25 defines the amendment's shape, and rule 28 defines how the corrected clause re-enters verification without rebuilding the phase. What no route may do is leave the defect recorded and unfixed in a spec that is about to be archived as precedent.
 
 The reconciliation is a required section of the critic's report, and rule 19's citation discipline applies to it. That is what makes it enforced rather than advisory: `/steer` cannot assemble `VERIFICATION_REPORT.md` without it.
 
@@ -159,6 +161,57 @@ A file that was correct when written is not evidence it is correct when read. Th
 Partial reading is the same failure one step earlier. A referenced file that was skimmed, summarised, or never opened has not been read — and a binding clause inside it cannot honestly be called honoured or verified. The critic persona's step 2c-ii is this rule applied to a claim's input domain: an AC that spot-checks ordinary values has not established an absolute claim about the whole domain.
 
 This is conduct, not state — no checker can confirm it. Its enforcement is that every verification step in this framework opens by reading its inputs from disk.
+
+### 25. A spec is a frozen approved baseline plus an append-only amendment log
+
+Before this rule, the framework sent a spec correction to four different places at once: rule 4 said `/plan`, rule 23 said the *next* phase's spec, `/steer` Option A said "revised in place", and `/plan`/`plan_spec` — the destination rule 4 and rule 23 both named — defined only how to draft a *new* spec and had no amendment mode. The prohibition in rule 23 was also written against "the archived copy", while rule 23 runs **before** rule 20's archive step, so at the moment of repair that copy did not yet exist. A rule that forbids editing a file that isn't there, and a mandated route with no mode for the task, is how projects end up inventing a new protocol every cycle.
+
+The spec's shape is therefore explicit. Every spec in `.codestream/active/` is one file with two parts:
+
+- **The Approved Baseline** — the normative text exactly as it was approved. Its normative text is **never edited** after `SPEC_APPROVED`: not to fix a typo, not to correct a count, not to narrow a clause the build disproved. This is rule 23's real intent, kept intact — code does not get to redefine what was asked for.
+- **The Amendment Log** — appended below the baseline, one numbered entry per correction: `AM-1`, `AM-2`, … Each entry records **what** it changes (by binding-item id, per rule 27), the **old text and the new text**, both quoted verbatim, **why** (the critic finding or `/diagnose` verdict that forced it), and which **AC rows** it adds, re-points, or retires. An amendment takes effect only on re-`SPEC_APPROVED`; rule 1 and rule 5 apply to it exactly as they did to the original.
+
+A reader resolves the spec by applying the amendment log over the baseline, later-amended entry winning. Nothing is deleted: superseded baseline text stays readable, so the reasoning that changed is auditable rather than erased. At closure (rule 20) the single file — baseline plus log — is what moves to `archive/specs/`, so the repair history travels with the spec and rule 23's reconciliation can label a clause *and cite the amendment that corrected it*.
+
+Two consequences worth stating, because they are the point of the rule. A clause-level defect found at Layer 2 is corrected in the **current** phase's spec — not deferred to the next phase's, which cannot retroactively make this phase's build honest. And because the correction is an explicit, dated, quoted, separately-approved amendment rather than a silent in-place edit, standardising it costs the framework nothing it was actually protecting.
+
+### 26. No derived literals in binding clauses
+
+A binding clause must not assert a value it does not itself define. Forbidden as an *assertion* in Key Behaviors, Resolved Ambiguities, Norms, Safeguards, and the Scope Guardrail:
+
+- a count of files, paths, clauses, edits, or phases, restated in prose (`"the five authorized edits"`, `"all 20 paths"`, `"exactly seven files"`);
+- an enumeration restated from another clause rather than cited from it;
+- a hand-computed date, duration, or arithmetic result written as a literal;
+- a permission list or allow-list duplicating one that already exists elsewhere in the spec.
+
+Such a value must instead be **cited** — the clause names the AC row that derives and asserts it — or **derived** — the AC computes it from source or from a declared list at run time rather than asserting a literal. The `plan_spec` skill's "Data Schema & Contracts" and AC-matrix sections are where this is discharged; `scripts/check-spec-coverage.py` (rule 27) flags restated counts it can detect.
+
+The reason is mechanical, not stylistic. The critic audits quantified constraints **literally** (its step 2c), so every hand-maintained derived literal is a defect with a fuse on it — and prose is checked by nobody but the critic. Worse, the literals are coupled: change one and every clause that restated the old number is now wrong. One project's single clause amendment required 13 coordinated count corrections across five sections, and the phase before it burned four consecutive audit cycles on the same failure mode. The purest example cost a whole phase's verdict: an AC row asserted a date-window edge as the hand-computed calendar date `2016-09-25`, while the true value was `2016-09-24` — and the row's own test passed, because the test *derived* the boundary from `today − 3650 days` and asserted on that. The literal in the prose was arithmetically impossible and nothing in the framework could see it until a critic read it by eye.
+
+### 27. The plan halt is gated by a mechanical coverage and consistency check
+
+`/plan` may not present a spec for `SPEC_APPROVED` until `scripts/check-spec-coverage.py` exits 0 against it. Two properties, both mechanical, both enforced as a **gate** rather than a warning:
+
+- **Coverage.** Every addressable binding item is cited by at least one AC row. A binding item with no AC row is a `SILENT DROP` (rule 23) found at plan time instead of after a full build, and it fails the halt exactly as a failing test fails Layer 1.
+- **Consistency.** Every `AC-N` / `RA-N` / `SG-N` / `N-N` id referenced anywhere in the spec resolves to something that exists, and no two binding items assign different values to the same named quantity.
+
+For coverage to be checkable, binding items must be **addressable**: each item in a binding section carries an id (`RA-15`, and where an item has sub-items that bind separately, `RA-15.a`, `RA-15.b`, …), and every AC row names the ids it verifies. `plan_spec`'s template requires this. An item that cannot be identified individually cannot be shown to be covered, and `"Mapped to AC-19 through AC-24"` on a five-part clause is exactly how a sub-item escapes — that is how a documented `label` bound of 128 shipped with no AC row and no artifact anywhere in the codebase.
+
+Where a bound is genuinely unverifiable mechanically, the clause says so **and** the AC row asserting that fact is the citation the checker accepts. The gate fails on the *absence of any citation*, never on the difficulty of the check. `plan_spec` has carried the coverage warning in prose since the framework began — "a binding constraint with no AC is exactly how an executor ends up implementing only the half the matrix happens to test" — and it still recurred, because a warning inside a prompt is not a gate. This rule makes it one. The same mechanics catch inter-clause contradiction: a spec that permits exactly four framework files to differ in one clause while another clause in the same document mandates writing a fifth cannot pass both.
+
+### 28. A clause-level defect re-enters scoped
+
+When Layer 2's Spec Reconciliation returns a clause-level label (`SILENT DROP`, `DEFECTIVE`, `UNVERIFIABLE`, `SCOPE CREEP`) and the AC matrix is otherwise fully green, the repair is an **amendment (rule 25) plus a scoped re-entry** — not a full phase rebuild, and not a patch handed back to the executor.
+
+Scoped re-entry means:
+
+- `/execute` applies only what the amendment authorizes, and nothing else — the amendment's own text is the authorization list.
+- **Layer 1 still runs in full, all four gates** (rule 13). Rule 13 is never scoped down: a green focused suite is not a Layer 1 pass, and the four gates are the evidence that the amendment broke nothing.
+- Layer 2 re-audits **only the amended clauses and the AC rows the amendment added, re-pointed, or retired**, plus a regression check that the clauses previously labelled `VALIDATED` still hold.
+- The scoped re-audit is run by the critic in a fresh context, not by the session that applied the amendment. Rule 3 is not relaxed by scoping — the agent that built a thing is still never the agent that certifies it.
+
+The distinction that matters: **scope the review surface, never the verification gates.** Re-running a 71-row audit to re-confirm 70 unchanged rows wastes the phase's budget; skipping the four gates because "only one clause changed" is verification theater. Those are the two opposite errors this rule exists to make unambiguous.
+
 
 ---
 

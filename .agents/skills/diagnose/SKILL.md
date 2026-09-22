@@ -13,7 +13,7 @@ description: Use whenever a bug, wrong behavior, or verification failure is foun
    → Fix: straightforward. Re-run `/execute` for that specific piece, re-verify.
 
 2. **Spec was wrong or ambiguous** — the code faithfully does what the spec said, but the spec itself didn't capture the actual requirement.
-   → Fix: do NOT patch the code first. Go back to `/plan` for that milestone, correct the spec, get it re-approved (`SPEC_APPROVED`), then re-execute. Patching code against a spec that's still wrong just creates a second gap between spec and reality.
+   → Fix: do NOT patch the code first. Go back to `/plan` for that milestone in **amendment mode** and append a numbered amendment to the spec's Amendment Log (rule 25) — never rewrite the baseline it was approved as. The correction takes effect on re-`SPEC_APPROVED`, then `/execute` re-enters (rule 28: scoped to what the amendment authorizes, with Layer 1 still run in full). Patching code against a spec that's still wrong just creates a second gap between spec and reality; and patching the *spec text* silently destroys the record of what was actually approved, which is why rule 25 makes the amendment explicit, dated and quoted.
 
 3. **Original intent was misunderstood** — the spec matches what was asked for in `/discover`, but what was asked for wasn't actually what was needed. This usually surfaces as "technically correct, but not useful."
    → Fix: go back further, to `.codestream/DISCOVERY.md`. Re-open the relevant question, get a corrected answer from the user, and let that cascade forward through `/map` and `/plan` again. Do not try to patch your way out of a wrong premise at the execution layer.
